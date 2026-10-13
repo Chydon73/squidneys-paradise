@@ -196,7 +196,8 @@ const FONT_STYLES = `
 @media (max-width: 640px) {
   .fl-hide-mobile { display: none; }
 }
-.fl-range { position: relative; height: 28px; margin: 4px 8px 0; }
+.fl-range { position: relative; height: 28px; margin: 4px 8px 0; cursor: pointer; touch-action: none; user-select: none; }
+.fl-range::before { content: ''; position: absolute; left: -12px; right: -12px; top: 0; bottom: 0; }
 .fl-range-track, .fl-range-fill { position: absolute; top: 12px; height: 4px; border-radius: 2px; pointer-events: none; }
 .fl-range-track { left: 0; right: 0; background: var(--divider); }
 .fl-range-fill { background: var(--turf); }
@@ -205,13 +206,19 @@ const FONT_STYLES = `
   background: transparent; -webkit-appearance: none; appearance: none; pointer-events: none;
 }
 .fl-range input[type="range"]::-webkit-slider-runnable-track { background: transparent; height: 28px; }
+.fl-range input[type="range"]::-moz-range-track { background: transparent; height: 28px; }
 .fl-range input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none; pointer-events: auto; cursor: pointer;
+  -webkit-appearance: none; appearance: none; pointer-events: none;
   width: 16px; height: 16px; margin-top: 6px; border-radius: 50%;
+  background: var(--turf-dark); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--turf-dark);
+}
+.fl-range input[type="range"]::-moz-range-thumb {
+  pointer-events: none; width: 12px; height: 12px; border-radius: 50%;
   background: var(--turf-dark); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--turf-dark);
 }
 .fl-range input[type="range"]:focus-visible { outline: none; }
 .fl-range input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--gold); }
+.fl-range input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--gold); }
 `;
 
 function uid() {
@@ -1428,9 +1435,11 @@ function FantasyLeagueTracker() {
             style={{ display: 'none' }}
             onChange={(e) => { importLeagueFile(e.target.files[0]); e.target.value = ''; }}
           />
-          <button className="fl-btn fl-keep-in-view" onClick={exportLeague}>
-            Export
-          </button>
+          {!IS_STATIC_SITE && (
+            <button className="fl-btn fl-keep-in-view" onClick={exportLeague}>
+              Export
+            </button>
+          )}
           <button
             className="fl-btn fl-keep-in-view"
             onClick={() => setGlobalView((v) => (v === 'career' ? null : 'career'))}
@@ -4618,6 +4627,45 @@ function YearRangeSlider({ years, from, to, onChange }) {
   const pct = (i) => (i / last) * 100;
   const isAll = fromIdx === 0 && toIdx === last;
   const count = toIdx - fromIdx + 1;
+
+  // Mouse and touch are handled on the whole track: press anywhere and the nearest handle
+  // jumps there and follows the pointer. (Overlapping native range inputs only drag reliably
+  // in Chrome/Edge.) The hidden-from-pointer inputs below still give keyboard control.
+  const trackRef = useRef(null);
+  const dragging = useRef(null); // 'from' | 'to' | 'either' (handles stacked: decided by direction)
+  const indexAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const f = r.width ? (clientX - r.left) / r.width : 0;
+    return Math.max(0, Math.min(last, Math.round(f * last)));
+  };
+  const moveHandle = (handle, i) => {
+    if (handle === 'from') onChange(years[Math.min(i, toIdx)], to);
+    else onChange(from, years[Math.max(i, fromIdx)]);
+  };
+  const onPointerDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    const i = indexAt(e.clientX);
+    let handle;
+    if (fromIdx === toIdx) handle = i < fromIdx ? 'from' : i > toIdx ? 'to' : 'either';
+    else if (i <= fromIdx) handle = 'from';
+    else if (i >= toIdx) handle = 'to';
+    else handle = i - fromIdx <= toIdx - i ? 'from' : 'to';
+    dragging.current = handle;
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) { /* keep dragging without capture */ }
+    if (handle !== 'either') moveHandle(handle, i);
+  };
+  const onPointerMove = (e) => {
+    if (!dragging.current) return;
+    const i = indexAt(e.clientX);
+    if (dragging.current === 'either') {
+      if (i === fromIdx) return;
+      dragging.current = i < fromIdx ? 'from' : 'to';
+    }
+    moveHandle(dragging.current, i);
+  };
+  const endDrag = () => { dragging.current = null; };
+
   return (
     <div className="fl-panel" style={{ padding: '10px 14px 6px', marginBottom: 14 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
@@ -4632,10 +4680,16 @@ function YearRangeSlider({ years, from, to, onChange }) {
           </button>
         )}
       </div>
-      <div className="fl-range">
+      <div
+        className="fl-range"
+        ref={trackRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+      >
         <div className="fl-range-track" />
         <div className="fl-range-fill" style={{ left: `${pct(fromIdx)}%`, right: `${100 - pct(toIdx)}%` }} />
-        {/* When both handles sit at the far right, the first-season one goes on top so it can still be dragged. */}
         <input
           type="range"
           className="fl-keep-in-view"
@@ -4646,10 +4700,9 @@ function YearRangeSlider({ years, from, to, onChange }) {
           value={fromIdx}
           onChange={(e) => {
             const v = Number(e.target.value);
-            // Handles stacked on one season: dragging right moves the end of the range instead.
+            // Handles stacked on one season: moving right moves the end of the range instead.
             if (v > toIdx) onChange(from, years[v]); else onChange(years[v], to);
           }}
-          style={{ zIndex: fromIdx === last ? 3 : 2 }}
         />
         <input
           type="range"
@@ -4661,10 +4714,9 @@ function YearRangeSlider({ years, from, to, onChange }) {
           value={toIdx}
           onChange={(e) => {
             const v = Number(e.target.value);
-            // Handles stacked on one season: dragging left moves the start of the range instead.
+            // Handles stacked on one season: moving left moves the start of the range instead.
             if (v < fromIdx) onChange(years[v], to); else onChange(from, years[v]);
           }}
-          style={{ zIndex: 2 }}
         />
       </div>
       <div style={{ position: 'relative', height: 16 }}>

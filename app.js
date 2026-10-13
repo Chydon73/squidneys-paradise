@@ -217,7 +217,8 @@ const FONT_STYLES = `
 @media (max-width: 640px) {
   .fl-hide-mobile { display: none; }
 }
-.fl-range { position: relative; height: 28px; margin: 4px 8px 0; }
+.fl-range { position: relative; height: 28px; margin: 4px 8px 0; cursor: pointer; touch-action: none; user-select: none; }
+.fl-range::before { content: ''; position: absolute; left: -12px; right: -12px; top: 0; bottom: 0; }
 .fl-range-track, .fl-range-fill { position: absolute; top: 12px; height: 4px; border-radius: 2px; pointer-events: none; }
 .fl-range-track { left: 0; right: 0; background: var(--divider); }
 .fl-range-fill { background: var(--turf); }
@@ -226,13 +227,19 @@ const FONT_STYLES = `
   background: transparent; -webkit-appearance: none; appearance: none; pointer-events: none;
 }
 .fl-range input[type="range"]::-webkit-slider-runnable-track { background: transparent; height: 28px; }
+.fl-range input[type="range"]::-moz-range-track { background: transparent; height: 28px; }
 .fl-range input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none; pointer-events: auto; cursor: pointer;
+  -webkit-appearance: none; appearance: none; pointer-events: none;
   width: 16px; height: 16px; margin-top: 6px; border-radius: 50%;
+  background: var(--turf-dark); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--turf-dark);
+}
+.fl-range input[type="range"]::-moz-range-thumb {
+  pointer-events: none; width: 12px; height: 12px; border-radius: 50%;
   background: var(--turf-dark); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--turf-dark);
 }
 .fl-range input[type="range"]:focus-visible { outline: none; }
 .fl-range input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--gold); }
+.fl-range input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--gold); }
 `;
 function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -1690,7 +1697,7 @@ function FantasyLeagueTracker() {
       importLeagueFile(e.target.files[0]);
       e.target.value = '';
     }
-  }), /*#__PURE__*/React.createElement("button", {
+  }), !IS_STATIC_SITE && /*#__PURE__*/React.createElement("button", {
     className: "fl-btn fl-keep-in-view",
     onClick: exportLeague
   }, "Export"), /*#__PURE__*/React.createElement("button", {
@@ -6809,6 +6816,44 @@ function YearRangeSlider({
   const pct = i => i / last * 100;
   const isAll = fromIdx === 0 && toIdx === last;
   const count = toIdx - fromIdx + 1;
+
+  // Mouse and touch are handled on the whole track: press anywhere and the nearest handle
+  // jumps there and follows the pointer. (Overlapping native range inputs only drag reliably
+  // in Chrome/Edge.) The hidden-from-pointer inputs below still give keyboard control.
+  const trackRef = useRef(null);
+  const dragging = useRef(null); // 'from' | 'to' | 'either' (handles stacked: decided by direction)
+  const indexAt = clientX => {
+    const r = trackRef.current.getBoundingClientRect();
+    const f = r.width ? (clientX - r.left) / r.width : 0;
+    return Math.max(0, Math.min(last, Math.round(f * last)));
+  };
+  const moveHandle = (handle, i) => {
+    if (handle === 'from') onChange(years[Math.min(i, toIdx)], to);else onChange(from, years[Math.max(i, fromIdx)]);
+  };
+  const onPointerDown = e => {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    const i = indexAt(e.clientX);
+    let handle;
+    if (fromIdx === toIdx) handle = i < fromIdx ? 'from' : i > toIdx ? 'to' : 'either';else if (i <= fromIdx) handle = 'from';else if (i >= toIdx) handle = 'to';else handle = i - fromIdx <= toIdx - i ? 'from' : 'to';
+    dragging.current = handle;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch (err) {/* keep dragging without capture */}
+    if (handle !== 'either') moveHandle(handle, i);
+  };
+  const onPointerMove = e => {
+    if (!dragging.current) return;
+    const i = indexAt(e.clientX);
+    if (dragging.current === 'either') {
+      if (i === fromIdx) return;
+      dragging.current = i < fromIdx ? 'from' : 'to';
+    }
+    moveHandle(dragging.current, i);
+  };
+  const endDrag = () => {
+    dragging.current = null;
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "fl-panel",
     style: {
@@ -6848,7 +6893,12 @@ function YearRangeSlider({
     },
     onClick: () => onChange(years[0], years[last])
   }, "All seasons")), /*#__PURE__*/React.createElement("div", {
-    className: "fl-range"
+    className: "fl-range",
+    ref: trackRef,
+    onPointerDown: onPointerDown,
+    onPointerMove: onPointerMove,
+    onPointerUp: endDrag,
+    onPointerCancel: endDrag
   }, /*#__PURE__*/React.createElement("div", {
     className: "fl-range-track"
   }), /*#__PURE__*/React.createElement("div", {
@@ -6867,11 +6917,8 @@ function YearRangeSlider({
     value: fromIdx,
     onChange: e => {
       const v = Number(e.target.value);
-      // Handles stacked on one season: dragging right moves the end of the range instead.
+      // Handles stacked on one season: moving right moves the end of the range instead.
       if (v > toIdx) onChange(from, years[v]);else onChange(years[v], to);
-    },
-    style: {
-      zIndex: fromIdx === last ? 3 : 2
     }
   }), /*#__PURE__*/React.createElement("input", {
     type: "range",
@@ -6883,11 +6930,8 @@ function YearRangeSlider({
     value: toIdx,
     onChange: e => {
       const v = Number(e.target.value);
-      // Handles stacked on one season: dragging left moves the start of the range instead.
+      // Handles stacked on one season: moving left moves the start of the range instead.
       if (v < fromIdx) onChange(years[v], to);else onChange(from, years[v]);
-    },
-    style: {
-      zIndex: 2
     }
   })), /*#__PURE__*/React.createElement("div", {
     style: {
