@@ -35,8 +35,8 @@ SITE_INDEX = """<!DOCTYPE html>
 <title>Squidney's Paradise</title>
 <link rel="icon" href="icon.png" />
 <style>
-  html, body {{ margin: 0; background: #F1ECDF; }}
-  #boot {{ font: 13px 'Segoe UI', sans-serif; color: #5B6472; padding: 60px 16px; text-align: center; }}
+  html, body {{ margin: 0; background: #121418; color-scheme: dark; }}
+  #boot {{ font: 13px 'Segoe UI', sans-serif; color: #A4ABB6; padding: 60px 16px; text-align: center; }}
 </style>
 <script>window.FL_STATIC = true; window.FL_PUBLISHED = {published};</script>
 <script src="vendor/react.production.min.js"></script>

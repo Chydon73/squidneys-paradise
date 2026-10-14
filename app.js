@@ -70,18 +70,25 @@ const FONT_STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Libre+Franklin:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 
 .fl-root {
-  --bg: #F1ECDF;
-  --panel: #FBF8F0;
-  --panel-raised: #FFFFFF;
-  --ink: #1B2430;
-  --ink-soft: #5B6472;
-  --ink-faint: #8B8D7F;
-  --turf: #3F6B3B;
-  --turf-dark: #2E4F2B;
-  --gold: #B8873A;
-  --gold-bg: #F2E4C6;
-  --rust: #A63E28;
-  --divider: #D9D0BC;
+  --bg: #121418;
+  --panel: #1A1D23;
+  --panel-raised: #22262D;
+  --hover: #2B3038;
+  --ink: #E7E9EC;
+  --ink-soft: #A4ABB6;
+  --ink-faint: #737B86;
+  --turf: #3FA35B;
+  --turf-dark: #5CC47A;
+  --gold: #D9A441;
+  --gold-bg: rgba(217,164,65,0.15);
+  --rust: #E5735A;
+  --rust-bg: rgba(229,115,90,0.16);
+  --divider: #2E333B;
+  --rule: #454B55;
+  --on-accent: #0F1114;
+  --chart-grid: #262A31;
+  --chart-muted: #4A505A;
+  color-scheme: dark;
   font-family: 'Libre Franklin', sans-serif;
   color: var(--ink);
   background: var(--bg);
@@ -97,25 +104,25 @@ const FONT_STYLES = `
 
 .fl-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  background: transparent; border: 1.5px solid var(--ink); color: var(--ink);
-  padding: 7px 13px; border-radius: 3px; font-size: 12.5px; font-weight: 700;
+  background: var(--panel-raised); border: 1px solid var(--rule); color: var(--ink);
+  padding: 7px 13px; border-radius: 6px; font-size: 12.5px; font-weight: 700;
   letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease, transform 0.05s ease;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.05s ease;
 }
-.fl-btn:hover { background: var(--ink); color: var(--panel); }
+.fl-btn:hover { background: var(--hover); border-color: var(--ink-faint); }
 .fl-btn:active { transform: scale(0.97); }
 .fl-btn:focus-visible { outline: 2px solid var(--turf); outline-offset: 2px; }
-.fl-btn-turf { border-color: var(--turf-dark); color: var(--turf-dark); }
-.fl-btn-turf:hover { background: var(--turf-dark); color: #fff; }
-.fl-btn-ghost { border: none; padding: 6px 8px; color: var(--ink-soft); }
-.fl-btn-ghost:hover { background: var(--divider); color: var(--ink); }
+.fl-btn-turf { background: var(--turf); border-color: var(--turf); color: var(--on-accent); }
+.fl-btn-turf:hover { background: var(--turf-dark); border-color: var(--turf-dark); }
+.fl-btn-ghost { background: transparent; border: none; padding: 6px 8px; color: var(--ink-soft); }
+.fl-btn-ghost:hover { background: var(--hover); color: var(--ink); }
 .fl-icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 3px; border: none;
+  width: 28px; height: 28px; border-radius: 6px; border: none;
   background: transparent; color: var(--ink-faint); cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease;
 }
-.fl-icon-btn:hover { background: #F3DAD0; color: var(--rust); }
+.fl-icon-btn:hover { background: var(--rust-bg); color: var(--rust); }
 .fl-icon-btn:focus-visible { outline: 2px solid var(--turf); outline-offset: 1px; }
 
 .fl-field {
@@ -123,34 +130,35 @@ const FONT_STYLES = `
   color: var(--ink); font-size: 13.5px; padding: 3px 2px; width: 100%;
   border-radius: 0; min-width: 0;
 }
-.fl-field:hover { border-bottom-color: var(--divider); }
+.fl-field:hover { border-bottom-color: var(--rule); }
 .fl-field:focus { outline: none; border-bottom-color: var(--turf); background: var(--gold-bg); }
 .fl-field-num { text-align: center; font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
 .fl-field-name { font-weight: 600; }
+.fl-select-right { text-align: right; text-align-last: right; }
 
 .fl-panel {
-  background: var(--panel); border: 1px solid var(--divider); border-radius: 4px;
+  background: var(--panel); border: 1px solid var(--divider); border-radius: 8px;
 }
 .fl-panel-raised { background: var(--panel-raised); }
 
 .fl-table { width: 100%; border-collapse: collapse; }
 .fl-table th {
   font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-  color: var(--ink-soft); text-align: center; padding: 8px 6px; border-bottom: 2px solid var(--ink);
+  color: var(--ink-soft); text-align: center; padding: 8px 6px; border-bottom: 1px solid var(--rule);
   white-space: nowrap;
 }
 .fl-table th.fl-th-left { text-align: left; }
 .fl-table td { padding: 6px 6px; border-bottom: 1px solid var(--divider); vertical-align: middle; }
 .fl-table tr:last-child td { border-bottom: none; }
-.fl-table tr:hover td { background: rgba(63,107,59,0.05); }
+.fl-table tr:hover td { background: rgba(255,255,255,0.03); }
 
 .fl-rank-badge {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--ink);
+  width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--rule);
   font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 11.5px;
   color: var(--ink);
 }
-.fl-rank-badge.gold { background: var(--gold); border-color: var(--gold); color: #fff; }
+.fl-rank-badge.gold { background: var(--gold); border-color: var(--gold); color: var(--on-accent); }
 
 .fl-subtab {
   background: transparent; border: none; border-bottom: 3px solid transparent;
@@ -161,7 +169,7 @@ const FONT_STYLES = `
 .fl-subtab.active { color: var(--ink); border-bottom-color: var(--turf); }
 
 .fl-matchup {
-  background: var(--panel-raised); border: 1px solid var(--divider); border-radius: 4px;
+  background: var(--panel-raised); border: 1px solid var(--divider); border-radius: 8px;
   padding: 8px 10px; margin-bottom: 10px;
 }
 .fl-matchup-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
@@ -169,14 +177,14 @@ const FONT_STYLES = `
 .fl-matchup-score { width: 40px; flex: 0 0 auto; }
 .fl-round-col { flex: 1 1 220px; min-width: 220px; }
 
-.fl-trade-card { background: var(--panel-raised); border: 1px solid var(--divider); border-radius: 4px; padding: 10px 12px; margin-bottom: 10px; }
+.fl-trade-card { background: var(--panel-raised); border: 1px solid var(--divider); border-radius: 8px; padding: 10px 12px; margin: 0 auto 10px; width: fit-content; max-width: 100%; }
 .fl-trade-parties { display: flex; flex-wrap: wrap; gap: 8px; }
-.fl-trade-party { border: 1px solid var(--divider); border-radius: 4px; padding: 7px 9px; margin-top: 8px; background: var(--panel); flex: 1 1 230px; min-width: 210px; }
-.fl-asset-row { display: flex; align-items: center; gap: 4px; padding: 2px 0; flex-wrap: wrap; }
+.fl-trade-party { border: 1px solid var(--divider); border-radius: 6px; padding: 7px 9px; margin-top: 8px; background: var(--panel); flex: 1 1 auto; min-width: 210px; }
+.fl-asset-row { display: flex; align-items: center; gap: 4px; padding: 2px 0; }
 .fl-asset-tag { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); width: 78px; flex: 0 0 78px; }
 
 .fl-empty {
-  border: 1.5px dashed var(--divider); border-radius: 4px; padding: 28px 16px;
+  border: 1.5px dashed var(--rule); border-radius: 8px; padding: 28px 16px;
   text-align: center; color: var(--ink-faint); font-size: 13px;
 }
 
@@ -190,6 +198,9 @@ const FONT_STYLES = `
 .fl-view-mode input[type="date"]::-webkit-calendar-picker-indicator { display: none; }
 .fl-view-mode button:not(.fl-keep-in-view):not(.fl-subtab) { display: none !important; }
 .fl-view-mode .fl-tiebreaker-row { display: none !important; }
+.fl-view-only { display: none; }
+.fl-view-mode .fl-view-only { display: inline; }
+.fl-view-mode .fl-edit-only { display: none !important; }
 .fl-bracket-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; }
 .fl-bracket-header { display: flex; align-items: flex-end; }
 .fl-bracket-round-label {
@@ -207,7 +218,7 @@ const FONT_STYLES = `
 }
 .fl-bracket-round:not(:first-child) .fl-bracket-match-wrap::before { top: 6px; height: 50%; border-top-width: 1.5px; border-right-width: 1.5px; }
 .fl-bracket-round:not(:first-child) .fl-bracket-match-wrap::after { bottom: 6px; height: 50%; border-bottom-width: 1.5px; border-right-width: 1.5px; }
-.fl-bmatch { background: var(--panel-raised); border: 1px solid var(--divider); border-radius: 4px; padding: 8px 10px; min-height: 62px; }
+.fl-bmatch { background: var(--panel-raised); border: 1px solid var(--divider); border-radius: 8px; padding: 8px 10px; min-height: 62px; }
 .fl-bmatch-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 3px 0; }
 .fl-bmatch-row.winner .fl-bmatch-name { color: var(--turf-dark); font-weight: 800; }
 .fl-bmatch-name { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -231,11 +242,11 @@ const FONT_STYLES = `
 .fl-range input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none; pointer-events: none;
   width: 16px; height: 16px; margin-top: 6px; border-radius: 50%;
-  background: var(--turf-dark); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--turf-dark);
+  background: var(--turf-dark); border: 2px solid var(--panel); box-shadow: 0 0 0 1.5px var(--turf-dark);
 }
 .fl-range input[type="range"]::-moz-range-thumb {
   pointer-events: none; width: 12px; height: 12px; border-radius: 50%;
-  background: var(--turf-dark); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--turf-dark);
+  background: var(--turf-dark); border: 2px solid var(--panel); box-shadow: 0 0 0 1.5px var(--turf-dark);
 }
 .fl-range input[type="range"]:focus-visible { outline: none; }
 .fl-range input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--gold); }
@@ -1066,30 +1077,31 @@ function generateExportHTML(league) {
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 :root {
-  --bg:#F1ECDF; --panel:#FBF8F0; --panel-raised:#FFFFFF; --ink:#1B2430; --ink-soft:#5B6472;
-  --ink-faint:#8B8D7F; --turf-dark:#2E4F2B; --gold:#B8873A; --divider:#D9D0BC;
+  --bg:#121418; --panel:#1A1D23; --panel-raised:#22262D; --ink:#E7E9EC; --ink-soft:#A4ABB6;
+  --ink-faint:#737B86; --turf:#3FA35B; --turf-dark:#5CC47A; --gold:#D9A441; --divider:#2E333B; --rule:#454B55;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body { font-family:'Libre Franklin',sans-serif; background:var(--bg); color:var(--ink); margin:0; padding:24px 16px 60px; }
 h1 { font-family:'Anton',sans-serif; font-size:32px; margin:0 0 4px; }
 .ex-subtitle { font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:16px; }
 .ex-year-nav { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
-.ex-year-btn { font-family:'Anton',sans-serif; font-size:16px; padding:8px 16px; border:1.5px solid var(--ink); border-radius:3px; background:var(--panel-raised); color:var(--ink); cursor:pointer; }
-.ex-year-btn.active { background:var(--ink); color:var(--gold); }
+.ex-year-btn { font-family:'Anton',sans-serif; font-size:16px; padding:8px 16px; border:1px solid var(--rule); border-radius:6px; background:var(--panel-raised); color:var(--ink); cursor:pointer; }
+.ex-year-btn.active { background:var(--turf); border-color:var(--turf); color:#0F1114; }
 .ex-season { display:none; }
 .ex-season.active { display:block; }
-.ex-year-heading { font-family:'Anton',sans-serif; font-size:26px; border-bottom:2px solid var(--ink); padding-bottom:6px; margin-top:0; }
-.ex-subtabs { display:flex; gap:0; border-bottom:1.5px solid var(--divider); margin-bottom:16px; flex-wrap:wrap; }
+.ex-year-heading { font-family:'Anton',sans-serif; font-size:26px; border-bottom:1px solid var(--rule); padding-bottom:6px; margin-top:0; }
+.ex-subtabs { display:flex; gap:0; border-bottom:1px solid var(--divider); margin-bottom:16px; flex-wrap:wrap; }
 .ex-subtab { font-family:'Libre Franklin',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; background:transparent; border:none; border-bottom:3px solid transparent; color:var(--ink-faint); padding:10px 14px 8px; cursor:pointer; }
 .ex-subtab:hover { color:var(--ink); }
-.ex-subtab.active { color:var(--ink); border-bottom-color:var(--turf-dark); }
+.ex-subtab.active { color:var(--ink); border-bottom-color:var(--turf); }
 .ex-subpanel { display:none; }
 .ex-subpanel.active { display:block; }
-.ex-panel { background:var(--panel-raised); border:1px solid var(--divider); border-radius:4px; padding:12px 14px; margin-bottom:12px; }
+.ex-panel { background:var(--panel-raised); border:1px solid var(--divider); border-radius:8px; padding:12px 14px; margin-bottom:12px; }
 .ex-panel-title { font-family:'Anton',sans-serif; font-size:15px; margin-bottom:8px; }
 .ex-scroll { overflow-x:auto; }
 .ex-table { width:100%; border-collapse:collapse; font-size:13px; }
-.ex-table th { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); border-bottom:2px solid var(--ink); padding:6px 5px; text-align:center; }
+.ex-table th { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); border-bottom:1px solid var(--rule); padding:6px 5px; text-align:center; }
 .ex-table td { padding:5px 5px; border-bottom:1px solid var(--divider); text-align:center; font-family:'IBM Plex Mono',monospace; }
 .ex-th-left, .ex-left { text-align:left !important; font-family:'Libre Franklin',sans-serif !important; font-weight:600; }
 .ex-winner { color:var(--turf-dark); font-weight:800; }
@@ -1099,7 +1111,7 @@ h1 { font-family:'Anton',sans-serif; font-size:32px; margin:0 0 4px; }
 .ex-bracket { display:flex; gap:20px; flex-wrap:wrap; }
 .ex-round { min-width:200px; }
 .ex-round-label { font-family:'Anton',sans-serif; font-size:13px; color:var(--ink-soft); margin-bottom:8px; }
-.ex-matchup { background:var(--panel-raised); border:1px solid var(--divider); border-radius:4px; padding:8px 10px; margin-bottom:10px; font-size:12.5px; }
+.ex-matchup { background:var(--panel-raised); border:1px solid var(--divider); border-radius:8px; padding:8px 10px; margin-bottom:10px; font-size:12.5px; }
 .ex-mrow { display:flex; justify-content:space-between; padding:2px 0; }
 .ex-score { font-family:'IBM Plex Mono',monospace; }
 .ex-bye { text-align:center; font-family:'Anton',sans-serif; color:var(--ink-faint); padding:4px 0; border-top:1px solid var(--divider); margin-top:4px; }
@@ -1107,7 +1119,7 @@ h1 { font-family:'Anton',sans-serif; font-size:32px; margin:0 0 4px; }
 .ex-stat-table td { padding:6px 4px; border-bottom:1px solid var(--divider); }
 .ex-stat-table td:first-child { color:var(--ink-faint); text-transform:uppercase; font-size:10px; letter-spacing:0.05em; width:220px; }
 .ex-trade-parties { display:flex; gap:10px; flex-wrap:wrap; }
-.ex-trade-party { flex:1 1 200px; border:1px solid var(--divider); border-radius:4px; padding:8px 10px; background:var(--panel); }
+.ex-trade-party { flex:1 1 200px; border:1px solid var(--divider); border-radius:6px; padding:8px 10px; background:var(--panel); }
 .ex-trade-line { font-size:12px; margin-top:2px; }
 .ex-trade-line span { color:var(--ink-faint); text-transform:uppercase; font-size:9.5px; letter-spacing:0.05em; }
 .ex-footer { margin-top:40px; font-size:11px; color:var(--ink-faint); }
@@ -1624,7 +1636,7 @@ function FantasyLeagueTracker() {
     }), /*#__PURE__*/React.createElement("style", null, '@keyframes spin { to { transform: rotate(360deg); } }'), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 13,
-        color: '#5B6472'
+        color: '#A4ABB6'
       }
     }, "Loading your league..."));
   }
@@ -1670,7 +1682,8 @@ function FantasyLeagueTracker() {
     style: {
       fontSize: 30,
       padding: 0,
-      borderBottomColor: 'transparent'
+      borderBottomColor: 'transparent',
+      textTransform: 'none'
     },
     value: league.leagueName,
     onChange: e => updateLeague(l => {
@@ -1706,8 +1719,9 @@ function FantasyLeagueTracker() {
   }, globalView === 'career' ? 'Back to season' : 'Career stats'), !IS_STATIC_SITE && /*#__PURE__*/React.createElement("button", {
     className: "fl-btn fl-keep-in-view",
     style: viewMode ? undefined : {
-      background: 'var(--ink)',
-      color: 'var(--panel)'
+      background: 'var(--turf)',
+      borderColor: 'var(--turf)',
+      color: 'var(--on-accent)'
     },
     onClick: () => setViewMode(v => !v)
   }, viewMode ? 'Edit mode' : 'Exit edit mode'), /*#__PURE__*/React.createElement("div", {
@@ -1767,7 +1781,7 @@ function FantasyLeagueTracker() {
     style: {
       fontSize: 20,
       padding: '8px 12px',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       background: 'var(--panel-raised)',
       color: 'var(--ink)',
@@ -1890,7 +1904,7 @@ function YearView({
       border: confirming ? '1.5px solid var(--rust)' : 'none',
       color: 'var(--rust)',
       fontSize: 11,
-      background: confirming ? '#F3DAD0' : 'transparent'
+      background: confirming ? 'var(--rust-bg)' : 'transparent'
     },
     onClick: handleDeleteClick
   }, /*#__PURE__*/React.createElement(Trash2, {
@@ -2001,7 +2015,7 @@ function StandingsChart({
   const pathFor = name => byWeek.map((wk, i) => `${i ? 'L' : 'M'}${x(i)},${y(wk.ranks[name])}`).join(' ');
   const emphasized = name => hoverTeam === name || !!pinColor(name);
   const anyEmphasis = pins.length > 0 || hoverTeam;
-  const lineColor = name => pinColor(name) || (hoverTeam === name ? 'var(--ink)' : '#BDB6A6');
+  const lineColor = name => pinColor(name) || (hoverTeam === name ? 'var(--ink)' : 'var(--chart-muted)');
   const onMove = e => {
     const rect = svgRef.current.getBoundingClientRect();
     const sx = (e.clientX - rect.left) / rect.width * W;
@@ -2040,7 +2054,7 @@ function StandingsChart({
         width: 9,
         height: 9,
         borderRadius: '50%',
-        background: color || '#BDB6A6'
+        background: color || 'var(--chart-muted)'
       }
     }), name);
   };
@@ -2142,14 +2156,14 @@ function StandingsChart({
     x2: W - RIGHT,
     y1: y(i + 1),
     y2: y(i + 1),
-    stroke: "#EEE9DD",
+    stroke: "var(--chart-grid)",
     strokeWidth: "1"
   }), /*#__PURE__*/React.createElement("text", {
     x: LEFT - 12,
     y: y(i + 1) + 4,
     textAnchor: "end",
     fontSize: "11",
-    fill: "#8B8D7F",
+    fill: "var(--ink-faint)",
     style: {
       fontFamily: "'IBM Plex Mono', monospace"
     }
@@ -2159,7 +2173,7 @@ function StandingsChart({
     y: H - 12,
     textAnchor: "middle",
     fontSize: "11",
-    fill: "#8B8D7F",
+    fill: "var(--ink-faint)",
     style: {
       fontFamily: "'IBM Plex Mono', monospace"
     }
@@ -2175,7 +2189,7 @@ function StandingsChart({
     x2: x(hoverIdx),
     y1: TOP - 8,
     y2: y(n) + 8,
-    stroke: "#8B8D7F",
+    stroke: "var(--ink-faint)",
     strokeWidth: "1"
   }), [...names].sort((a, b) => Number(emphasized(a)) - Number(emphasized(b))).map(name => {
     const on = emphasized(name);
@@ -2206,7 +2220,7 @@ function StandingsChart({
       cy: y(wk.ranks[name]),
       r: "4",
       fill: color,
-      stroke: "#FFFFFF",
+      stroke: "var(--panel-raised)",
       strokeWidth: "2"
     })), /*#__PURE__*/React.createElement("text", {
       x: W - RIGHT + 12,
@@ -2226,8 +2240,8 @@ function StandingsChart({
       right: tipLeftPct > 60 ? `calc(${100 - tipLeftPct}% + 14px)` : undefined,
       background: 'var(--panel-raised)',
       border: '1px solid var(--divider)',
-      borderRadius: 4,
-      boxShadow: '0 4px 14px rgba(27,36,48,0.12)',
+      borderRadius: 8,
+      boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
       padding: '8px 10px',
       minWidth: 150
     }
@@ -2538,7 +2552,7 @@ function StandingsTab({
   }, "Tiebreaker"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'inline-flex',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       overflow: 'hidden'
     }
@@ -2550,8 +2564,8 @@ function StandingsTab({
       fontSize: 11.5,
       fontWeight: 700,
       padding: '6px 10px',
-      background: tiebreaker === 'points' ? 'var(--ink)' : 'transparent',
-      color: tiebreaker === 'points' ? 'var(--panel)' : 'var(--ink)'
+      background: tiebreaker === 'points' ? 'var(--turf)' : 'transparent',
+      color: tiebreaker === 'points' ? 'var(--on-accent)' : 'var(--ink-soft)'
     }
   }, "Total points"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setTiebreaker('h2h'),
@@ -2561,9 +2575,9 @@ function StandingsTab({
       fontSize: 11.5,
       fontWeight: 700,
       padding: '6px 10px',
-      background: tiebreaker === 'h2h' ? 'var(--ink)' : 'transparent',
-      color: tiebreaker === 'h2h' ? 'var(--panel)' : 'var(--ink)',
-      borderLeft: '1.5px solid var(--ink)'
+      background: tiebreaker === 'h2h' ? 'var(--turf)' : 'transparent',
+      color: tiebreaker === 'h2h' ? 'var(--on-accent)' : 'var(--ink-soft)',
+      borderLeft: '1px solid var(--rule)'
     }
   }, "Head-to-head"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setTiebreaker('h2h_nfl'),
@@ -2573,9 +2587,9 @@ function StandingsTab({
       fontSize: 11.5,
       fontWeight: 700,
       padding: '6px 10px',
-      background: tiebreaker === 'h2h_nfl' ? 'var(--ink)' : 'transparent',
-      color: tiebreaker === 'h2h_nfl' ? 'var(--panel)' : 'var(--ink)',
-      borderLeft: '1.5px solid var(--ink)'
+      background: tiebreaker === 'h2h_nfl' ? 'var(--turf)' : 'transparent',
+      color: tiebreaker === 'h2h_nfl' ? 'var(--on-accent)' : 'var(--ink-soft)',
+      borderLeft: '1px solid var(--rule)'
     }
   }, "Head-to-head (NFL)"))), /*#__PURE__*/React.createElement("button", {
     className: "fl-btn-ghost fl-btn",
@@ -2604,7 +2618,7 @@ function StandingsTab({
   }, "View"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'inline-flex',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       overflow: 'hidden'
     }
@@ -2617,8 +2631,8 @@ function StandingsTab({
       fontSize: 11.5,
       fontWeight: 700,
       padding: '6px 10px',
-      background: viewMode === 'division' ? 'var(--ink)' : 'transparent',
-      color: viewMode === 'division' ? 'var(--panel)' : 'var(--ink)'
+      background: viewMode === 'division' ? 'var(--turf)' : 'transparent',
+      color: viewMode === 'division' ? 'var(--on-accent)' : 'var(--ink-soft)'
     }
   }, "By division"), /*#__PURE__*/React.createElement("button", {
     className: "fl-keep-in-view",
@@ -2629,9 +2643,9 @@ function StandingsTab({
       fontSize: 11.5,
       fontWeight: 700,
       padding: '6px 10px',
-      background: viewMode === 'league' ? 'var(--ink)' : 'transparent',
-      color: viewMode === 'league' ? 'var(--panel)' : 'var(--ink)',
-      borderLeft: '1.5px solid var(--ink)'
+      background: viewMode === 'league' ? 'var(--turf)' : 'transparent',
+      color: viewMode === 'league' ? 'var(--on-accent)' : 'var(--ink-soft)',
+      borderLeft: '1px solid var(--rule)'
     }
   }, "League-wide")), playedWeeks.length > 1 && /*#__PURE__*/React.createElement("button", {
     className: "fl-btn fl-keep-in-view",
@@ -2640,8 +2654,9 @@ function StandingsTab({
       padding: '5px 10px',
       marginLeft: 'auto',
       ...(showChart ? {
-        background: 'var(--ink)',
-        color: 'var(--panel)'
+        background: 'var(--turf)',
+        borderColor: 'var(--turf)',
+        color: 'var(--on-accent)'
       } : {})
     },
     onClick: () => setShowChart(v => !v)
@@ -2808,7 +2823,8 @@ function StandingsTab({
     style: {
       fontSize: 17,
       maxWidth: 320,
-      borderBottomColor: 'transparent'
+      borderBottomColor: 'transparent',
+      textTransform: 'none'
     },
     value: div.name,
     onChange: e => renameDivision(div.id, e.target.value),
@@ -3140,7 +3156,10 @@ function GamesTab({
     className: "fl-panel fl-panel-raised",
     style: {
       padding: '12px 14px',
-      marginBottom: 14
+      margin: '0 auto 14px',
+      width: 'fit-content',
+      maxWidth: '100%',
+      boxSizing: 'border-box'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3187,33 +3206,40 @@ function GamesTab({
   }, "No games logged for this week yet.") : /*#__PURE__*/React.createElement("div", {
     className: "fl-scroll-x"
   }, /*#__PURE__*/React.createElement("table", {
-    className: "fl-table",
+    className: "fl-table fl-gamelog-table",
     style: {
       tableLayout: 'fixed',
-      minWidth: 380
+      width: 508,
+      margin: '0 auto'
     }
   }, /*#__PURE__*/React.createElement("colgroup", null, /*#__PURE__*/React.createElement("col", {
     style: {
-      width: 130
+      width: 32
     }
   }), /*#__PURE__*/React.createElement("col", {
     style: {
-      width: 60
+      width: 150
     }
   }), /*#__PURE__*/React.createElement("col", {
     style: {
-      width: 60
+      width: 72
     }
   }), /*#__PURE__*/React.createElement("col", {
     style: {
-      width: 130
+      width: 72
+    }
+  }), /*#__PURE__*/React.createElement("col", {
+    style: {
+      width: 150
     }
   }), /*#__PURE__*/React.createElement("col", {
     style: {
       width: 32
     }
-  })), /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
-    className: "fl-th-left"
+  })), /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null), /*#__PURE__*/React.createElement("th", {
+    style: {
+      textAlign: 'right'
+    }
   }, "Team"), /*#__PURE__*/React.createElement("th", null, "Score"), /*#__PURE__*/React.createElement("th", null, "Score"), /*#__PURE__*/React.createElement("th", {
     className: "fl-th-left"
   }, "Team"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, week.games.map(g => {
@@ -3231,12 +3257,8 @@ function GamesTab({
     const optionsForB = teamNames.filter(n => n === g.teamB || !usedInWeek.has(n) && n !== g.teamA);
     return /*#__PURE__*/React.createElement("tr", {
       key: g.id
-    }, /*#__PURE__*/React.createElement("td", {
-      style: {
-        minWidth: 110
-      }
-    }, /*#__PURE__*/React.createElement("select", {
-      className: "fl-field fl-field-name",
+    }, /*#__PURE__*/React.createElement("td", null), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
+      className: "fl-field fl-field-name fl-select-right",
       style: {
         cursor: 'pointer',
         ...(aWin ? {
@@ -3253,15 +3275,13 @@ function GamesTab({
       value: n
     }, n)))), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement(ScoreInput, {
       value: g.scoreA,
+      highlight: aWin,
       onCommit: v => updateGame(week.id, g.id, 'scoreA', v)
     })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement(ScoreInput, {
       value: g.scoreB,
+      highlight: bWin,
       onCommit: v => updateGame(week.id, g.id, 'scoreB', v)
-    })), /*#__PURE__*/React.createElement("td", {
-      style: {
-        minWidth: 110
-      }
-    }, /*#__PURE__*/React.createElement("select", {
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("select", {
       className: "fl-field fl-field-name",
       style: {
         cursor: 'pointer',
@@ -3297,12 +3317,16 @@ function GamesTab({
     onClick: () => addGame(week.id)
   }, /*#__PURE__*/React.createElement(Plus, {
     size: 12
-  }), " Add game")))), /*#__PURE__*/React.createElement("button", {
+  }), " Add game")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
     className: "fl-btn fl-btn-turf",
     onClick: addWeek
   }, /*#__PURE__*/React.createElement(Plus, {
     size: 14
-  }), " Add week"));
+  }), " Add week")));
 }
 function DraftTab({
   year,
@@ -3813,13 +3837,15 @@ function DraftTab({
     }, /*#__PURE__*/React.createElement("option", {
       value: "",
       style: {
-        color: '#000'
+        color: 'var(--ink)',
+        background: 'var(--panel-raised)'
       }
     }, "Pos"), POSITIONS.map(p => /*#__PURE__*/React.createElement("option", {
       key: p,
       value: p,
       style: {
-        color: '#000'
+        color: 'var(--ink)',
+        background: 'var(--panel-raised)'
       }
     }, p))), /*#__PURE__*/React.createElement("select", {
       className: "fl-field fl-mono",
@@ -3835,13 +3861,15 @@ function DraftTab({
     }, /*#__PURE__*/React.createElement("option", {
       value: "",
       style: {
-        color: '#000'
+        color: 'var(--ink)',
+        background: 'var(--panel-raised)'
       }
     }, "Tm"), NFL_TEAMS.map(n => /*#__PURE__*/React.createElement("option", {
       key: n,
       value: n,
       style: {
-        color: '#000'
+        color: 'var(--ink)',
+        background: 'var(--panel-raised)'
       }
     }, n))))));
   })))))));
@@ -3941,7 +3969,7 @@ function PlayoffsTab({
     }, "Give division winners the top seeds?"), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'inline-flex',
-        border: '1.5px solid var(--ink)',
+        border: '1px solid var(--rule)',
         borderRadius: 3,
         overflow: 'hidden'
       }
@@ -3954,8 +3982,8 @@ function PlayoffsTab({
         fontSize: 11.5,
         fontWeight: 700,
         padding: '6px 12px',
-        background: setupUseDivWinners ? 'var(--ink)' : 'transparent',
-        color: setupUseDivWinners ? 'var(--panel)' : 'var(--ink)',
+        background: setupUseDivWinners ? 'var(--turf)' : 'transparent',
+        color: setupUseDivWinners ? 'var(--on-accent)' : 'var(--ink-soft)',
         opacity: numDivisions < 2 ? 0.4 : 1
       }
     }, "Yes"), /*#__PURE__*/React.createElement("button", {
@@ -3966,9 +3994,9 @@ function PlayoffsTab({
         fontSize: 11.5,
         fontWeight: 700,
         padding: '6px 12px',
-        background: !setupUseDivWinners ? 'var(--ink)' : 'transparent',
-        color: !setupUseDivWinners ? 'var(--panel)' : 'var(--ink)',
-        borderLeft: '1.5px solid var(--ink)'
+        background: !setupUseDivWinners ? 'var(--turf)' : 'transparent',
+        color: !setupUseDivWinners ? 'var(--on-accent)' : 'var(--ink-soft)',
+        borderLeft: '1px solid var(--rule)'
       }
     }, "No, straight by league rank")), numDivisions < 2 && /*#__PURE__*/React.createElement("div", {
       style: {
@@ -4162,7 +4190,7 @@ function AssetRow({
   return /*#__PURE__*/React.createElement("div", {
     className: "fl-asset-row"
   }, /*#__PURE__*/React.createElement("select", {
-    className: "fl-field fl-mono",
+    className: "fl-field fl-mono fl-edit-only",
     style: {
       width: 64,
       flex: '0 0 64px',
@@ -4178,7 +4206,8 @@ function AssetRow({
   }, "$")), asset.kind === 'player' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(PlayerNameInput, {
     className: "fl-field fl-field-name",
     style: {
-      flex: '1 1 90px',
+      flex: '0 1 160px',
+      width: 160,
       minWidth: 70,
       fontSize: 12
     },
@@ -4217,10 +4246,10 @@ function AssetRow({
   }, "Tm"), NFL_TEAMS.map(n => /*#__PURE__*/React.createElement("option", {
     key: n,
     value: n
-  }, n)))) : /*#__PURE__*/React.createElement("input", {
+  }, n)))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("input", {
     type: "text",
     inputMode: "decimal",
-    className: "fl-field fl-mono",
+    className: "fl-field fl-mono fl-edit-only",
     style: {
       width: 90,
       flex: '0 0 90px',
@@ -4229,7 +4258,14 @@ function AssetRow({
     placeholder: "Amount ($)",
     value: asset.amount,
     onChange: e => onUpdate('amount', e.target.value)
-  }), /*#__PURE__*/React.createElement("button", {
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "fl-mono fl-view-only",
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      padding: '3px 2px'
+    }
+  }, "$", asset.amount, " FAAB")), /*#__PURE__*/React.createElement("button", {
     className: "fl-icon-btn",
     style: {
       width: 20,
@@ -4510,12 +4546,16 @@ function TradesTab({
     onClick: () => addParty(trade.id)
   }, /*#__PURE__*/React.createElement(Plus, {
     size: 11
-  }), " Add team to trade")))), /*#__PURE__*/React.createElement("button", {
+  }), " Add team to trade")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
     className: "fl-btn fl-btn-turf",
     onClick: addTrade
   }, /*#__PURE__*/React.createElement(Plus, {
     size: 14
-  }), " Add trade"));
+  }), " Add trade")));
 }
 function computeTeamTrades(year, teamName) {
   return (year.trades || []).filter(trade => trade.parties.some(p => p.team === teamName)).sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
@@ -4563,7 +4603,7 @@ function TeamsTab({
     style: {
       fontSize: 20,
       padding: '8px 12px',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       background: 'var(--panel-raised)',
       color: 'var(--ink)',
@@ -5597,7 +5637,7 @@ function useModeAndTieFold(rowsByMode, fixedRows) {
   const switcher = rowsByMode && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'inline-flex',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       overflow: 'hidden',
       marginBottom: 8
@@ -5615,9 +5655,9 @@ function useModeAndTieFold(rowsByMode, fixedRows) {
       fontSize: 10.5,
       fontWeight: 700,
       padding: '4px 8px',
-      background: mode === key ? 'var(--ink)' : 'transparent',
-      color: mode === key ? 'var(--panel)' : 'var(--ink)',
-      borderLeft: i ? '1.5px solid var(--ink)' : 'none'
+      background: mode === key ? 'var(--turf)' : 'transparent',
+      color: mode === key ? 'var(--on-accent)' : 'var(--ink-soft)',
+      borderLeft: i ? '1px solid var(--rule)' : 'none'
     }
   }, label)));
 
@@ -6592,7 +6632,7 @@ function TeamCareerStats({
     style: {
       fontSize: 20,
       padding: '8px 12px',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       background: 'var(--panel-raised)',
       color: 'var(--ink)',
@@ -6604,7 +6644,7 @@ function TeamCareerStats({
   }, n))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'inline-flex',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       overflow: 'hidden'
     }
@@ -6618,9 +6658,9 @@ function TeamCareerStats({
       fontSize: 11.5,
       fontWeight: 700,
       padding: '6px 10px',
-      background: mode === key ? 'var(--ink)' : 'transparent',
-      color: mode === key ? 'var(--panel)' : 'var(--ink)',
-      borderLeft: i ? '1.5px solid var(--ink)' : 'none'
+      background: mode === key ? 'var(--turf)' : 'transparent',
+      color: mode === key ? 'var(--on-accent)' : 'var(--ink-soft)',
+      borderLeft: i ? '1px solid var(--rule)' : 'none'
     }
   }, label)))), /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",
@@ -7018,7 +7058,7 @@ function CareerStatsTab({
   }, "Games"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'inline-flex',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       overflow: 'hidden'
     }
@@ -7032,9 +7072,9 @@ function CareerStatsTab({
       fontSize: 11.5,
       fontWeight: 700,
       padding: '6px 10px',
-      background: standingsMode === mode ? 'var(--ink)' : 'transparent',
-      color: standingsMode === mode ? 'var(--panel)' : 'var(--ink)',
-      borderLeft: i ? '1.5px solid var(--ink)' : 'none'
+      background: standingsMode === mode ? 'var(--turf)' : 'transparent',
+      color: standingsMode === mode ? 'var(--on-accent)' : 'var(--ink-soft)',
+      borderLeft: i ? '1px solid var(--rule)' : 'none'
     }
   }, label)))), subtab === 'standings' && seasonYears.length > 1 && /*#__PURE__*/React.createElement(YearRangeSlider, {
     years: seasonYears,
@@ -7247,7 +7287,7 @@ function CareerStatsTab({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'inline-flex',
-      border: '1.5px solid var(--ink)',
+      border: '1px solid var(--rule)',
       borderRadius: 3,
       overflow: 'hidden'
     }
@@ -7261,9 +7301,9 @@ function CareerStatsTab({
       fontSize: 11.5,
       fontWeight: 700,
       padding: '6px 10px',
-      background: leagueSub === key ? 'var(--ink)' : 'transparent',
-      color: leagueSub === key ? 'var(--panel)' : 'var(--ink)',
-      borderLeft: i ? '1.5px solid var(--ink)' : 'none'
+      background: leagueSub === key ? 'var(--turf)' : 'transparent',
+      color: leagueSub === key ? 'var(--on-accent)' : 'var(--ink-soft)',
+      borderLeft: i ? '1px solid var(--rule)' : 'none'
     }
   }, label)))), leagueSub === 'superlatives' ? /*#__PURE__*/React.createElement(SeasonSuperlatives, {
     league: league

@@ -1,5 +1,5 @@
 {
- "leagueName": "Squidney's paradise",
+ "leagueName": "Squidney's Paradise",
  "years": [
   {
    "id": "13dq9daq",
@@ -3253,7 +3253,7 @@
      }
     }
    },
-   "tiebreaker": "points",
+   "tiebreaker": "h2h_nfl",
    "trades": [
     {
      "id": "opamjwu6",
@@ -7844,7 +7844,7 @@
      }
     }
    },
-   "tiebreaker": "h2h",
+   "tiebreaker": "h2h_nfl",
    "trades": [
     {
      "id": "45vrd485",
@@ -11849,7 +11849,7 @@
      }
     }
    },
-   "tiebreaker": "h2h",
+   "tiebreaker": "h2h_nfl",
    "trades": [
     {
      "id": "elf0mk2f",
@@ -21602,7 +21602,7 @@
     },
     {
      "id": "o06ewuhh",
-     "name": "charizard",
+     "name": "Charizard",
      "teams": [
       {
        "id": "9og40d37",
@@ -21624,7 +21624,7 @@
     },
     {
      "id": "xlaflf5b",
-     "name": "blastoise",
+     "name": "Blastoise",
      "teams": [
       {
        "id": "w8u9eiup",
@@ -26712,7 +26712,7 @@
    "divisions": [
     {
      "id": "ps51onxu",
-     "name": "sCEPTILE",
+     "name": "Sceptile",
      "teams": [
       {
        "id": "qrzmp8yt",
@@ -26734,7 +26734,7 @@
     },
     {
      "id": "eq3akn3d",
-     "name": "bLAZIKEN",
+     "name": "Blaziken",
      "teams": [
       {
        "id": "wv10xbe0",
@@ -26756,7 +26756,7 @@
     },
     {
      "id": "ldvzhses",
-     "name": "sWAMPERT",
+     "name": "Swampert",
      "teams": [
       {
        "id": "jt00jd1r",
@@ -27173,6 +27173,60 @@
          "position": "WR",
          "nflTeam": "SEA",
          "amount": 0
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "wcapzfx1",
+     "date": "2026-10-13",
+     "parties": [
+      {
+       "id": "bil7dwke",
+       "team": "Cade",
+       "receives": [
+        {
+         "id": "6nhz97fq",
+         "kind": "waiver",
+         "player": "",
+         "position": "",
+         "nflTeam": "",
+         "amount": 85
+        }
+       ],
+       "sends": [
+        {
+         "id": "pojbxod0",
+         "kind": "player",
+         "player": "Kendre Miller",
+         "position": "RB",
+         "nflTeam": "NO",
+         "amount": 0
+        }
+       ]
+      },
+      {
+       "id": "kqlteddt",
+       "team": "Presley",
+       "receives": [
+        {
+         "id": "cqobblxy",
+         "kind": "player",
+         "player": "Kendre Miller",
+         "position": "RB",
+         "nflTeam": "NO",
+         "amount": 0
+        }
+       ],
+       "sends": [
+        {
+         "id": "trxbbmmz",
+         "kind": "waiver",
+         "player": "",
+         "position": "",
+         "nflTeam": "",
+         "amount": 85
         }
        ]
       }
