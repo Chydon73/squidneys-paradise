@@ -10,6 +10,26 @@ const {
 // from league.json next to the page, is always read-only, and never saves.
 const IS_STATIC_SITE = !!window.FL_STATIC;
 
+// When the site was built, shown in US Eastern time. The America/New_York zone switches
+// between EST and EDT on the right dates by itself.
+function publishedText() {
+  const at = window.FL_PUBLISHED_AT && new Date(window.FL_PUBLISHED_AT);
+  if (!at || isNaN(at)) return window.FL_PUBLISHED || '';
+  try {
+    return at.toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  } catch (e) {
+    return window.FL_PUBLISHED || '';
+  }
+}
+
 // Local-file storage: the Python launcher (app.pyw) saves the league to data/league.json.
 const localStore = {
   async load() {
@@ -524,6 +544,9 @@ function computeTeamPlayoffSchedule(year, teamName) {
   });
   return rows;
 }
+function teamScheduleFor(year, teamName) {
+  return [...computeTeamSchedule(year, teamName), ...computeTeamPlayoffSchedule(year, teamName)];
+}
 function computeTeamStats(year) {
   const games = getAllGames(year);
   const stats = {};
@@ -753,8 +776,10 @@ function computeBracketRounds(year, bracket) {
     for (let i = 0; i < currentSlots.length; i += 2) {
       const left = currentSlots[i];
       const right = currentSlots[i + 1];
-      const isByeA = !left;
-      const isByeB = !right;
+      // Byes only exist in the first round. Later, an empty slot means that game isn't
+      // decided yet, so nobody advances through it.
+      const isByeA = r === 0 && !left;
+      const isByeB = r === 0 && !right;
       let winner = null;
       let scoreA = 0;
       let scoreB = 0;
@@ -1732,7 +1757,7 @@ function FantasyLeagueTracker() {
       minWidth: 70,
       textAlign: 'right'
     }
-  }, IS_STATIC_SITE && window.FL_PUBLISHED && `updated ${window.FL_PUBLISHED}`, saveStatus === 'saving' && 'saving...', saveStatus === 'saved' && 'all changes saved', saveStatus === 'error' && /*#__PURE__*/React.createElement("span", {
+  }, IS_STATIC_SITE && publishedText() && `updated ${publishedText()}`, saveStatus === 'saving' && 'saving...', saveStatus === 'saved' && 'all changes saved', saveStatus === 'error' && /*#__PURE__*/React.createElement("span", {
     style: {
       color: 'var(--rust)'
     }
@@ -4587,7 +4612,7 @@ function TeamsTab({
   const s = statFor(effectiveSelected);
   const dRank = teamEntry ? divRank[teamEntry.id] : null;
   const lRank = teamEntry ? leagueRank[teamEntry.id] : null;
-  const schedule = [...computeTeamSchedule(year, effectiveSelected), ...computeTeamPlayoffSchedule(year, effectiveSelected)];
+  const schedule = teamScheduleFor(year, effectiveSelected);
   const teamTrades = computeTeamTrades(year, effectiveSelected);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4771,18 +4796,49 @@ function TeamsTab({
     style: {
       padding: '12px 14px'
     }
-  }, schedule.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: 'var(--ink-faint)'
+  }, /*#__PURE__*/React.createElement(ScheduleTable, {
+    schedule: schedule
+  })));
+}
+
+// A team's games for one season (regular season, then playoffs), as listed by
+// computeTeamSchedule and computeTeamPlayoffSchedule.
+function ScheduleTable({
+  schedule
+}) {
+  if (schedule.length === 0) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: 'var(--ink-faint)'
+      }
+    }, "No games logged for this team yet.");
+  }
+  // Running regular-season record after each played game. Playoff games show the record the
+  // team finished the regular season with.
+  const records = [];
+  const t = {
+    W: 0,
+    L: 0,
+    T: 0
+  };
+  const text = () => `${t.W}-${t.L}${t.T ? `-${t.T}` : ''}`;
+  schedule.forEach(row => {
+    if (row.isBye || row.isUpcoming || !['W', 'L', 'T'].includes(row.result)) {
+      records.push('');
+      return;
     }
-  }, "No games logged for this team yet.") : /*#__PURE__*/React.createElement("div", {
+    if (!row.isPlayoff) t[row.result] += 1;
+    records.push(text());
+  });
+  return /*#__PURE__*/React.createElement("div", {
     className: "fl-scroll-x"
   }, /*#__PURE__*/React.createElement("table", {
     className: "fl-table",
     style: {
       tableLayout: 'fixed',
-      minWidth: 400
+      minWidth: 460,
+      maxWidth: 590
     }
   }, /*#__PURE__*/React.createElement("colgroup", null, /*#__PURE__*/React.createElement("col", {
     style: {
@@ -4800,9 +4856,13 @@ function TeamsTab({
     style: {
       width: 60
     }
+  }), /*#__PURE__*/React.createElement("col", {
+    style: {
+      width: 70
+    }
   })), /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Week"), /*#__PURE__*/React.createElement("th", {
     className: "fl-th-left"
-  }, "Opponent"), /*#__PURE__*/React.createElement("th", null, "Score"), /*#__PURE__*/React.createElement("th", null, "Result"))), /*#__PURE__*/React.createElement("tbody", null, schedule.map((row, i) => /*#__PURE__*/React.createElement("tr", {
+  }, "Opponent"), /*#__PURE__*/React.createElement("th", null, "Score"), /*#__PURE__*/React.createElement("th", null, "Result"), /*#__PURE__*/React.createElement("th", null, "Record"))), /*#__PURE__*/React.createElement("tbody", null, schedule.map((row, i) => /*#__PURE__*/React.createElement("tr", {
     key: i,
     style: row.isPlayoff ? {
       background: 'var(--gold-bg)'
@@ -4832,7 +4892,14 @@ function TeamsTab({
       fontWeight: 800,
       color: row.result === 'W' ? 'var(--turf-dark)' : row.result === 'L' ? 'var(--rust)' : row.result === 'BYE' ? 'var(--gold)' : 'var(--ink-soft)'
     }
-  }, row.result))))))));
+  }, row.result), /*#__PURE__*/React.createElement("td", {
+    className: "fl-mono",
+    style: {
+      textAlign: 'center',
+      fontSize: 12.5,
+      color: 'var(--ink-soft)'
+    }
+  }, records[i]))))));
 }
 
 // Playoff games from a season's bracket. Byes aren't games, and a matchup where both
@@ -5083,6 +5150,7 @@ function rankedByMode(items, dir) {
 // single games include playoff games but skip byes and matchups not played yet (0-0).
 function computeAllTimeRecords(league) {
   const seasons = [];
+  const seasonPpg = [];
   const seasonRecords = [];
   const games = [];
   const matchups = [];
@@ -5099,6 +5167,11 @@ function computeAllTimeRecords(league) {
           value: s.pf
         });
         const gp = s.wins + s.losses + s.ties;
+        if (gp) seasonPpg.push({
+          team: name,
+          year: y.year,
+          value: s.pf / gp
+        });
         if (gp) seasonRecords.push({
           team: name,
           year: y.year,
@@ -5167,8 +5240,15 @@ function computeAllTimeRecords(league) {
   const regular = computeStreaks(matchups.filter(m => !m.playoff));
   const playoffs = computeStreaks(matchups.filter(m => m.playoff));
   return {
-    highSeasons: topRanked(seasons, 'desc'),
-    lowSeasons: topRanked(seasons, 'asc'),
+    // Per-game averages tie only when exactly equal (13-game and 14-game seasons rarely do).
+    highSeasons: {
+      total: topRanked(seasons, 'desc'),
+      ppg: topRanked(seasonPpg, 'desc', 10, WIN_PCT_TOLERANCE)
+    },
+    lowSeasons: {
+      total: topRanked(seasons, 'asc'),
+      ppg: topRanked(seasonPpg, 'asc', 10, WIN_PCT_TOLERANCE)
+    },
     // Equal win% lists more wins first (best) or more losses first (worst).
     bestSeasonRecords: topRanked([...seasonRecords].sort((a, b) => b.wins - a.wins), 'desc', 10, WIN_PCT_TOLERANCE),
     worstSeasonRecords: topRanked([...seasonRecords].sort((a, b) => b.losses - a.losses), 'asc', 10, WIN_PCT_TOLERANCE),
@@ -5246,14 +5326,16 @@ function RecordList({
   title,
   rows: fixedRows,
   rowsByMode,
+  modes,
   isGame
 }) {
   const {
+    mode,
     rows,
     visible,
     switcher,
     foldRows
-  } = useModeAndTieFold(rowsByMode, fixedRows);
+  } = useModeAndTieFold(rowsByMode, fixedRows, modes);
   return /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",
     style: {
@@ -5279,7 +5361,7 @@ function RecordList({
     }
   }, "Rk"), /*#__PURE__*/React.createElement("th", {
     className: "fl-th-left"
-  }, "Team"), /*#__PURE__*/React.createElement("th", null, "Pts"), /*#__PURE__*/React.createElement("th", {
+  }, "Team"), /*#__PURE__*/React.createElement("th", null, mode === 'ppg' ? 'PPG' : 'Pts'), /*#__PURE__*/React.createElement("th", {
     className: "fl-th-left"
   }, isGame ? 'When' : 'Season'), isGame && /*#__PURE__*/React.createElement("th", {
     className: "fl-th-left"
@@ -5623,11 +5705,12 @@ function MatchupRecordList({
   }, `${r.year} ${r.label}`))), foldRows(4, r => formatScore(r.value), 'matchups'))));
 }
 const STREAK_MODES = [['combined', 'Regular + playoffs'], ['regular', 'Regular season'], ['playoffs', 'Playoffs']];
+const SEASON_POINTS_MODES = [['total', 'Total points'], ['ppg', 'Points per game']];
 
-// Shared by the record lists that switch between game sets ({ combined, regular, playoffs })
-// and fold a big tie for last place into one expandable line.
-function useModeAndTieFold(rowsByMode, fixedRows) {
-  const [mode, setMode] = useState('combined');
+// Shared by the record lists that switch between versions of the list (by default the game
+// sets { combined, regular, playoffs }) and fold a big tie for last place into one expandable line.
+function useModeAndTieFold(rowsByMode, fixedRows, modes = STREAK_MODES) {
+  const [mode, setMode] = useState(modes[0][0]);
   const [showAllTied, setShowAllTied] = useState(false);
   const rows = rowsByMode ? rowsByMode[mode] : fixedRows;
   const lastRank = rows.length ? rows[rows.length - 1].rank : 0;
@@ -5642,7 +5725,7 @@ function useModeAndTieFold(rowsByMode, fixedRows) {
       overflow: 'hidden',
       marginBottom: 8
     }
-  }, STREAK_MODES.map(([key, label], i) => /*#__PURE__*/React.createElement("button", {
+  }, modes.map(([key, label], i) => /*#__PURE__*/React.createElement("button", {
     key: key,
     className: "fl-keep-in-view",
     onClick: () => {
@@ -6166,10 +6249,12 @@ function AllTimeRecords({
     rows: r.worstSeasonRecords
   }), /*#__PURE__*/React.createElement(RecordList, {
     title: "Highest scoring seasons",
-    rows: r.highSeasons
+    rowsByMode: r.highSeasons,
+    modes: SEASON_POINTS_MODES
   }), /*#__PURE__*/React.createElement(RecordList, {
     title: "Lowest scoring seasons",
-    rows: r.lowSeasons
+    rowsByMode: r.lowSeasons,
+    modes: SEASON_POINTS_MODES
   }), /*#__PURE__*/React.createElement(WeeksAtRankList, {
     title: "Weeks in 1st place",
     rows: weeksAtRank.top
@@ -6402,8 +6487,11 @@ function computeTeamSeasons(league, team) {
   });
 }
 function TeamSeasonsTable({
-  seasons
+  seasons,
+  league,
+  team
 }) {
+  const [openYear, setOpenYear] = useState(null);
   const resultColor = p => p === 'Champion' ? 'var(--gold)' : p === 'Runner-up' ? 'var(--turf-dark)' : p === 'Missed playoffs' ? 'var(--ink-faint)' : 'var(--ink)';
   return /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",
@@ -6423,7 +6511,7 @@ function TeamSeasonsTable({
       color: 'var(--ink-faint)',
       marginBottom: 8
     }
-  }, "Record, points and finishes are regular season; the last columns are the playoffs."), /*#__PURE__*/React.createElement("div", {
+  }, "Record, points and finishes are regular season; the last columns are the playoffs. Click a season to see its full schedule."), /*#__PURE__*/React.createElement("div", {
     className: "fl-scroll-x"
   }, /*#__PURE__*/React.createElement("table", {
     className: "fl-table",
@@ -6434,17 +6522,32 @@ function TeamSeasonsTable({
     className: "fl-th-left"
   }, "Season"), /*#__PURE__*/React.createElement("th", null, "Record"), /*#__PURE__*/React.createElement("th", null, "Win%"), /*#__PURE__*/React.createElement("th", null, "PF"), /*#__PURE__*/React.createElement("th", null, "PA"), /*#__PURE__*/React.createElement("th", null, "Division"), /*#__PURE__*/React.createElement("th", null, "League"), /*#__PURE__*/React.createElement("th", null, "Seed"), /*#__PURE__*/React.createElement("th", {
     className: "fl-th-left"
-  }, "Playoffs"))), /*#__PURE__*/React.createElement("tbody", null, seasons.map(s => /*#__PURE__*/React.createElement("tr", {
-    key: s.year,
-    style: s.playoffs === 'Champion' ? {
-      background: 'var(--gold-bg)'
-    } : undefined
+  }, "Playoffs"))), /*#__PURE__*/React.createElement("tbody", null, seasons.map(s => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: s.year
+  }, /*#__PURE__*/React.createElement("tr", {
+    onClick: () => setOpenYear(cur => cur === s.year ? null : s.year),
+    title: `Show ${team}'s ${s.year} schedule`,
+    style: {
+      cursor: 'pointer',
+      ...(s.playoffs === 'Champion' || openYear === s.year ? {
+        background: 'var(--gold-bg)'
+      } : {})
+    }
   }, /*#__PURE__*/React.createElement("td", {
     className: "fl-display",
     style: {
-      fontSize: 14
+      fontSize: 14,
+      whiteSpace: 'nowrap'
     }
-  }, s.year), /*#__PURE__*/React.createElement("td", {
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-block',
+      width: 12,
+      color: 'var(--ink-faint)',
+      fontSize: 10,
+      fontFamily: 'inherit'
+    }
+  }, openYear === s.year ? '▾' : '▸'), s.year), /*#__PURE__*/React.createElement("td", {
     className: "fl-mono",
     style: {
       textAlign: 'center',
@@ -6495,7 +6598,15 @@ function TeamSeasonsTable({
       fontWeight: 700,
       color: resultColor(s.playoffs)
     }
-  }, s.playoffs)))))));
+  }, s.playoffs)), openYear === s.year && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: 9,
+    style: {
+      padding: '4px 8px 12px 22px',
+      background: 'var(--panel)'
+    }
+  }, /*#__PURE__*/React.createElement(ScheduleTable, {
+    schedule: teamScheduleFor(league.years.find(y => y.year === s.year), team)
+  })))))))));
 }
 function MatchupHistory({
   games,
@@ -6688,7 +6799,10 @@ function TeamCareerStats({
       alignSelf: 'center'
     }
   }, mode === 'playoffs' ? `${team} hasn't made the playoffs yet.` : `No games for ${team} yet.`), titles)), /*#__PURE__*/React.createElement(TeamSeasonsTable, {
-    seasons: computeTeamSeasons(league, team)
+    key: team,
+    seasons: computeTeamSeasons(league, team),
+    league: league,
+    team: team
   }), /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",
     style: {

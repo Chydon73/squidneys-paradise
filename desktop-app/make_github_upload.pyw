@@ -9,7 +9,7 @@ tracker at least once after any code change before running this.
 import json
 import shutil
 import sys
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parent
@@ -38,7 +38,7 @@ SITE_INDEX = """<!DOCTYPE html>
   html, body {{ margin: 0; background: #121418; color-scheme: dark; }}
   #boot {{ font: 13px 'Segoe UI', sans-serif; color: #A4ABB6; padding: 60px 16px; text-align: center; }}
 </style>
-<script>window.FL_STATIC = true; window.FL_PUBLISHED = {published};</script>
+<script>window.FL_STATIC = true; window.FL_PUBLISHED = {published}; window.FL_PUBLISHED_AT = {published_at};</script>
 <script src="vendor/react.production.min.js"></script>
 <script src="vendor/react-dom.production.min.js"></script>
 </head>
@@ -87,8 +87,11 @@ def build():
     (OUT_DIR / "vendor").mkdir(parents=True)
 
     published = date.today().strftime("%b %d, %Y").replace(" 0", " ")
+    # The page shows this moment in Eastern time (EST or EDT, whichever applied then).
+    published_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     (OUT_DIR / "index.html").write_text(
-        SITE_INDEX.format(published=json.dumps(published), version=compile_key(source)), encoding="utf-8")
+        SITE_INDEX.format(published=json.dumps(published), published_at=json.dumps(published_at),
+                          version=compile_key(source)), encoding="utf-8")
     shutil.copy2(compiled, OUT_DIR / "app.js")
     shutil.copy2(league_file, OUT_DIR / "league.json")
     shutil.copy2(APP_DIR / "web" / "icon.png", OUT_DIR / "icon.png")

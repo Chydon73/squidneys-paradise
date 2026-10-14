@@ -4,6 +4,21 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // from league.json next to the page, is always read-only, and never saves.
 const IS_STATIC_SITE = !!window.FL_STATIC;
 
+// When the site was built, shown in US Eastern time. The America/New_York zone switches
+// between EST and EDT on the right dates by itself.
+function publishedText() {
+  const at = window.FL_PUBLISHED_AT && new Date(window.FL_PUBLISHED_AT);
+  if (!at || isNaN(at)) return window.FL_PUBLISHED || '';
+  try {
+    return at.toLocaleString('en-US', {
+      timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+    });
+  } catch (e) {
+    return window.FL_PUBLISHED || '';
+  }
+}
+
 // Local-file storage: the Python launcher (app.pyw) saves the league to data/league.json.
 const localStore = {
   async load() {
@@ -441,6 +456,10 @@ function computeTeamPlayoffSchedule(year, teamName) {
   return rows;
 }
 
+function teamScheduleFor(year, teamName) {
+  return [...computeTeamSchedule(year, teamName), ...computeTeamPlayoffSchedule(year, teamName)];
+}
+
 function computeTeamStats(year) {
   const games = getAllGames(year);
   const stats = {};
@@ -630,8 +649,10 @@ function computeBracketRounds(year, bracket) {
     for (let i = 0; i < currentSlots.length; i += 2) {
       const left = currentSlots[i];
       const right = currentSlots[i + 1];
-      const isByeA = !left;
-      const isByeB = !right;
+      // Byes only exist in the first round. Later, an empty slot means that game isn't
+      // decided yet, so nobody advances through it.
+      const isByeA = r === 0 && !left;
+      const isByeB = r === 0 && !right;
       let winner = null;
       let scoreA = 0;
       let scoreB = 0;
@@ -1468,7 +1489,7 @@ function FantasyLeagueTracker() {
             </button>
           )}
           <div className="fl-mono" style={{ fontSize: 11, color: 'var(--ink-faint)', minWidth: 70, textAlign: 'right' }}>
-            {IS_STATIC_SITE && window.FL_PUBLISHED && `updated ${window.FL_PUBLISHED}`}
+            {IS_STATIC_SITE && publishedText() && `updated ${publishedText()}`}
             {saveStatus === 'saving' && 'saving...'}
             {saveStatus === 'saved' && 'all changes saved'}
             {saveStatus === 'error' && <span style={{ color: 'var(--rust)' }}>save failed</span>}
@@ -3277,7 +3298,7 @@ function TeamsTab({ year }) {
   const s = statFor(effectiveSelected);
   const dRank = teamEntry ? divRank[teamEntry.id] : null;
   const lRank = teamEntry ? leagueRank[teamEntry.id] : null;
-  const schedule = [...computeTeamSchedule(year, effectiveSelected), ...computeTeamPlayoffSchedule(year, effectiveSelected)];
+  const schedule = teamScheduleFor(year, effectiveSelected);
   const teamTrades = computeTeamTrades(year, effectiveSelected);
 
   return (
@@ -3359,49 +3380,69 @@ function TeamsTab({ year }) {
       )}
 
       <div className="fl-panel fl-panel-raised" style={{ padding: '12px 14px' }}>
-        {schedule.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>No games logged for this team yet.</div>
-        ) : (
-          <div className="fl-scroll-x">
-            <table className="fl-table" style={{ tableLayout: 'fixed', minWidth: 400 }}>
-              <colgroup>
-                <col style={{ width: 96 }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 130 }} />
-                <col style={{ width: 60 }} />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>Week</th>
-                  <th className="fl-th-left">Opponent</th>
-                  <th>Score</th>
-                  <th>Result</th>
-                </tr>
-              </thead>
-              <tbody>
-                {schedule.map((row, i) => (
-                  <tr key={i} style={row.isPlayoff ? { background: 'var(--gold-bg)' } : undefined}>
-                    <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5 }}>{row.weekLabel}</td>
-                    <td style={{ fontSize: 13, fontWeight: 600 }}>{row.isBye ? '—' : (row.opponent || '—')}</td>
-                    <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5 }}>
-                      {row.isBye || row.isUpcoming ? '—' : `${formatScore(row.own)} - ${formatScore(row.opp)}`}
-                    </td>
-                    <td
-                      className="fl-mono"
-                      style={{
-                        textAlign: 'center', fontSize: 12.5, fontWeight: 800,
-                        color: row.result === 'W' ? 'var(--turf-dark)' : row.result === 'L' ? 'var(--rust)' : row.result === 'BYE' ? 'var(--gold)' : 'var(--ink-soft)',
-                      }}
-                    >
-                      {row.result}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <ScheduleTable schedule={schedule} />
       </div>
+    </div>
+  );
+}
+
+// A team's games for one season (regular season, then playoffs), as listed by
+// computeTeamSchedule and computeTeamPlayoffSchedule.
+function ScheduleTable({ schedule }) {
+  if (schedule.length === 0) {
+    return <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>No games logged for this team yet.</div>;
+  }
+  // Running regular-season record after each played game. Playoff games show the record the
+  // team finished the regular season with.
+  const records = [];
+  const t = { W: 0, L: 0, T: 0 };
+  const text = () => `${t.W}-${t.L}${t.T ? `-${t.T}` : ''}`;
+  schedule.forEach((row) => {
+    if (row.isBye || row.isUpcoming || !['W', 'L', 'T'].includes(row.result)) { records.push(''); return; }
+    if (!row.isPlayoff) t[row.result] += 1;
+    records.push(text());
+  });
+  return (
+    <div className="fl-scroll-x">
+      <table className="fl-table" style={{ tableLayout: 'fixed', minWidth: 460, maxWidth: 590 }}>
+        <colgroup>
+          <col style={{ width: 96 }} />
+          <col style={{ width: 110 }} />
+          <col style={{ width: 130 }} />
+          <col style={{ width: 60 }} />
+          <col style={{ width: 70 }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th className="fl-th-left">Opponent</th>
+            <th>Score</th>
+            <th>Result</th>
+            <th>Record</th>
+          </tr>
+        </thead>
+        <tbody>
+          {schedule.map((row, i) => (
+            <tr key={i} style={row.isPlayoff ? { background: 'var(--gold-bg)' } : undefined}>
+              <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5 }}>{row.weekLabel}</td>
+              <td style={{ fontSize: 13, fontWeight: 600 }}>{row.isBye ? '—' : (row.opponent || '—')}</td>
+              <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5 }}>
+                {row.isBye || row.isUpcoming ? '—' : `${formatScore(row.own)} - ${formatScore(row.opp)}`}
+              </td>
+              <td
+                className="fl-mono"
+                style={{
+                  textAlign: 'center', fontSize: 12.5, fontWeight: 800,
+                  color: row.result === 'W' ? 'var(--turf-dark)' : row.result === 'L' ? 'var(--rust)' : row.result === 'BYE' ? 'var(--gold)' : 'var(--ink-soft)',
+                }}
+              >
+                {row.result}
+              </td>
+              <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--ink-soft)' }}>{records[i]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -3582,6 +3623,7 @@ function rankedByMode(items, dir) {
 // single games include playoff games but skip byes and matchups not played yet (0-0).
 function computeAllTimeRecords(league) {
   const seasons = [];
+  const seasonPpg = [];
   const seasonRecords = [];
   const games = [];
   const matchups = [];
@@ -3594,6 +3636,7 @@ function computeAllTimeRecords(league) {
         const s = stats[name];
         seasons.push({ team: name, year: y.year, value: s.pf });
         const gp = s.wins + s.losses + s.ties;
+        if (gp) seasonPpg.push({ team: name, year: y.year, value: s.pf / gp });
         if (gp) seasonRecords.push({ team: name, year: y.year, wins: s.wins, losses: s.losses, ties: s.ties, value: (s.wins + s.ties * 0.5) / gp });
       });
     }
@@ -3630,8 +3673,9 @@ function computeAllTimeRecords(league) {
   const regular = computeStreaks(matchups.filter((m) => !m.playoff));
   const playoffs = computeStreaks(matchups.filter((m) => m.playoff));
   return {
-    highSeasons: topRanked(seasons, 'desc'),
-    lowSeasons: topRanked(seasons, 'asc'),
+    // Per-game averages tie only when exactly equal (13-game and 14-game seasons rarely do).
+    highSeasons: { total: topRanked(seasons, 'desc'), ppg: topRanked(seasonPpg, 'desc', 10, WIN_PCT_TOLERANCE) },
+    lowSeasons: { total: topRanked(seasons, 'asc'), ppg: topRanked(seasonPpg, 'asc', 10, WIN_PCT_TOLERANCE) },
     // Equal win% lists more wins first (best) or more losses first (worst).
     bestSeasonRecords: topRanked([...seasonRecords].sort((a, b) => b.wins - a.wins), 'desc', 10, WIN_PCT_TOLERANCE),
     worstSeasonRecords: topRanked([...seasonRecords].sort((a, b) => b.losses - a.losses), 'asc', 10, WIN_PCT_TOLERANCE),
@@ -3697,8 +3741,8 @@ function computeStreaks(matchups) {
   return { wins, losses };
 }
 
-function RecordList({ title, rows: fixedRows, rowsByMode, isGame }) {
-  const { rows, visible, switcher, foldRows } = useModeAndTieFold(rowsByMode, fixedRows);
+function RecordList({ title, rows: fixedRows, rowsByMode, modes, isGame }) {
+  const { mode, rows, visible, switcher, foldRows } = useModeAndTieFold(rowsByMode, fixedRows, modes);
   return (
     <div className="fl-panel fl-panel-raised" style={{ padding: '12px 14px' }}>
       <div className="fl-display" style={{ fontSize: 15, marginBottom: 6 }}>{title}</div>
@@ -3711,7 +3755,7 @@ function RecordList({ title, rows: fixedRows, rowsByMode, isGame }) {
             <tr>
               <th style={{ width: 34 }}>Rk</th>
               <th className="fl-th-left">Team</th>
-              <th>Pts</th>
+              <th>{mode === 'ppg' ? 'PPG' : 'Pts'}</th>
               <th className="fl-th-left">{isGame ? 'When' : 'Season'}</th>
               {isGame && <th className="fl-th-left">Opponent</th>}
             </tr>
@@ -3919,10 +3963,12 @@ function MatchupRecordList({ title, rowsByMode, valueLabel = 'Total' }) {
 
 const STREAK_MODES = [['combined', 'Regular + playoffs'], ['regular', 'Regular season'], ['playoffs', 'Playoffs']];
 
-// Shared by the record lists that switch between game sets ({ combined, regular, playoffs })
-// and fold a big tie for last place into one expandable line.
-function useModeAndTieFold(rowsByMode, fixedRows) {
-  const [mode, setMode] = useState('combined');
+const SEASON_POINTS_MODES = [['total', 'Total points'], ['ppg', 'Points per game']];
+
+// Shared by the record lists that switch between versions of the list (by default the game
+// sets { combined, regular, playoffs }) and fold a big tie for last place into one expandable line.
+function useModeAndTieFold(rowsByMode, fixedRows, modes = STREAK_MODES) {
+  const [mode, setMode] = useState(modes[0][0]);
   const [showAllTied, setShowAllTied] = useState(false);
   const rows = rowsByMode ? rowsByMode[mode] : fixedRows;
   const lastRank = rows.length ? rows[rows.length - 1].rank : 0;
@@ -3932,7 +3978,7 @@ function useModeAndTieFold(rowsByMode, fixedRows) {
 
   const switcher = rowsByMode && (
     <div style={{ display: 'inline-flex', border: '1px solid var(--rule)', borderRadius: 3, overflow: 'hidden', marginBottom: 8 }}>
-      {STREAK_MODES.map(([key, label], i) => (
+      {modes.map(([key, label], i) => (
         <button
           key={key}
           className="fl-keep-in-view"
@@ -4247,8 +4293,8 @@ function AllTimeRecords({ league }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 14 }}>
         <SeasonRecordList title="Best regular season records" rows={r.bestSeasonRecords} />
         <SeasonRecordList title="Worst regular season records" rows={r.worstSeasonRecords} />
-        <RecordList title="Highest scoring seasons" rows={r.highSeasons} />
-        <RecordList title="Lowest scoring seasons" rows={r.lowSeasons} />
+        <RecordList title="Highest scoring seasons" rowsByMode={r.highSeasons} modes={SEASON_POINTS_MODES} />
+        <RecordList title="Lowest scoring seasons" rowsByMode={r.lowSeasons} modes={SEASON_POINTS_MODES} />
         <WeeksAtRankList title="Weeks in 1st place" rows={weeksAtRank.top} />
         <WeeksAtRankList title="Weeks in last place" rows={weeksAtRank.bottom} />
         <WeeksAtRankList title="Weeks as top scorer" rows={weeksAtRank.mostPts} />
@@ -4392,13 +4438,14 @@ function computeTeamSeasons(league, team) {
   });
 }
 
-function TeamSeasonsTable({ seasons }) {
+function TeamSeasonsTable({ seasons, league, team }) {
+  const [openYear, setOpenYear] = useState(null);
   const resultColor = (p) => (p === 'Champion' ? 'var(--gold)' : p === 'Runner-up' ? 'var(--turf-dark)' : p === 'Missed playoffs' ? 'var(--ink-faint)' : 'var(--ink)');
   return (
     <div className="fl-panel fl-panel-raised" style={{ padding: '12px 14px', marginBottom: 16 }}>
       <div className="fl-display" style={{ fontSize: 15, marginBottom: 2 }}>Season by season</div>
       <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 8 }}>
-        Record, points and finishes are regular season; the last columns are the playoffs.
+        Record, points and finishes are regular season; the last columns are the playoffs. Click a season to see its full schedule.
       </div>
       <div className="fl-scroll-x">
         <table className="fl-table" style={{ minWidth: 640 }}>
@@ -4417,8 +4464,16 @@ function TeamSeasonsTable({ seasons }) {
           </thead>
           <tbody>
             {seasons.map((s) => (
-              <tr key={s.year} style={s.playoffs === 'Champion' ? { background: 'var(--gold-bg)' } : undefined}>
-                <td className="fl-display" style={{ fontSize: 14 }}>{s.year}</td>
+              <React.Fragment key={s.year}>
+              <tr
+                onClick={() => setOpenYear((cur) => (cur === s.year ? null : s.year))}
+                title={`Show ${team}'s ${s.year} schedule`}
+                style={{ cursor: 'pointer', ...(s.playoffs === 'Champion' || openYear === s.year ? { background: 'var(--gold-bg)' } : {}) }}
+              >
+                <td className="fl-display" style={{ fontSize: 14, whiteSpace: 'nowrap' }}>
+                  <span style={{ display: 'inline-block', width: 12, color: 'var(--ink-faint)', fontSize: 10, fontFamily: 'inherit' }}>{openYear === s.year ? '▾' : '▸'}</span>
+                  {s.year}
+                </td>
                 <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 700 }}>{`${s.wins}-${s.losses}${s.ties ? `-${s.ties}` : ''}`}</td>
                 <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5 }}>{fmtPct(s.winPct)}</td>
                 <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5 }}>{formatScore(s.pf)}</td>
@@ -4432,6 +4487,14 @@ function TeamSeasonsTable({ seasons }) {
                 <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12.5 }}>{s.seed || '—'}</td>
                 <td style={{ fontSize: 12.5, fontWeight: 700, color: resultColor(s.playoffs) }}>{s.playoffs}</td>
               </tr>
+              {openYear === s.year && (
+                <tr>
+                  <td colSpan={9} style={{ padding: '4px 8px 12px 22px', background: 'var(--panel)' }}>
+                    <ScheduleTable schedule={teamScheduleFor(league.years.find((y) => y.year === s.year), team)} />
+                  </td>
+                </tr>
+              )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
@@ -4568,7 +4631,7 @@ function TeamCareerStats({ league }) {
         )}
       </div>
 
-      <TeamSeasonsTable seasons={computeTeamSeasons(league, team)} />
+      <TeamSeasonsTable key={team} seasons={computeTeamSeasons(league, team)} league={league} team={team} />
 
       <div className="fl-panel fl-panel-raised" style={{ padding: '12px 14px' }}>
         <div className="fl-display" style={{ fontSize: 15, marginBottom: 2 }}>Record vs. each team</div>
