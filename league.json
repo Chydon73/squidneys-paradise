@@ -27017,6 +27017,102 @@
        "scoreB": 129.05
       }
      ]
+    },
+    {
+     "id": "p3tlbnlk",
+     "weekNum": 6,
+     "games": [
+      {
+       "id": "gu4es5h3",
+       "teamA": "Peyton",
+       "scoreA": 142.5,
+       "teamB": "Robbie",
+       "scoreB": 103.75
+      },
+      {
+       "id": "xb1rv309",
+       "teamA": "Dylan",
+       "scoreA": 96.7,
+       "teamB": "Caleb",
+       "scoreB": 90.4
+      },
+      {
+       "id": "g2ztsixx",
+       "teamA": "Presley",
+       "scoreA": 130.75,
+       "teamB": "John",
+       "scoreB": 143.55
+      },
+      {
+       "id": "id0pqeuh",
+       "teamA": "Cade",
+       "scoreA": 129,
+       "teamB": "Chance",
+       "scoreB": 94.4
+      },
+      {
+       "id": "sl3wy0o2",
+       "teamA": "Marty",
+       "scoreA": 84.1,
+       "teamB": "Santino",
+       "scoreB": 95.6
+      },
+      {
+       "id": "sm31i36u",
+       "teamA": "Austin",
+       "scoreA": 117.65,
+       "teamB": "Kyle",
+       "scoreB": 131.25
+      }
+     ]
+    },
+    {
+     "id": "nwsrenfw",
+     "weekNum": 7,
+     "games": [
+      {
+       "id": "oxwqaq28",
+       "teamA": "Peyton",
+       "scoreA": 134.85,
+       "teamB": "Austin",
+       "scoreB": 94.35
+      },
+      {
+       "id": "si9pwmli",
+       "teamA": "Cade",
+       "scoreA": 110.8,
+       "teamB": "Marty",
+       "scoreB": 99.35
+      },
+      {
+       "id": "24raz3dk",
+       "teamA": "Presley",
+       "scoreA": 108.75,
+       "teamB": "Caleb",
+       "scoreB": 107.6
+      },
+      {
+       "id": "nq4phlwh",
+       "teamA": "Dylan",
+       "scoreA": 86.2,
+       "teamB": "John",
+       "scoreB": 118.1
+      },
+      {
+       "id": "zm4g1ab6",
+       "teamA": "Santino",
+       "scoreA": 120.5,
+       "teamB": "Chance",
+       "scoreB": 147.45
+      },
+      {
+       "id": "8gfrp0cm",
+       "teamA": "Kyle",
+       "scoreA": 146.95,
+       "teamB": "Robbie",
+       "scoreB": 136.1
+      }
+     ]
     }
    ],
    "playoffBracket": null,
@@ -27227,6 +27323,254 @@
          "position": "",
          "nflTeam": "",
          "amount": 85
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "ljrwozdf",
+     "date": "2026-10-14",
+     "parties": [
+      {
+       "id": "pttg049p",
+       "team": "Cade",
+       "receives": [
+        {
+         "id": "etu50xlc",
+         "kind": "player",
+         "player": "Brock Purdy",
+         "position": "QB",
+         "nflTeam": "SF",
+         "amount": 0
+        }
+       ],
+       "sends": [
+        {
+         "id": "hlhttuqo",
+         "kind": "player",
+         "player": "Jalen Coker",
+         "position": "WR",
+         "nflTeam": "CAR",
+         "amount": 0
+        }
+       ]
+      },
+      {
+       "id": "kmjw4tjw",
+       "team": "Dylan",
+       "receives": [
+        {
+         "id": "ksev6xni",
+         "kind": "player",
+         "player": "Jalen Coker",
+         "position": "WR",
+         "nflTeam": "CAR",
+         "amount": 0
+        }
+       ],
+       "sends": [
+        {
+         "id": "t2ps9l0a",
+         "kind": "player",
+         "player": "Brock Purdy",
+         "position": "QB",
+         "nflTeam": "SF",
+         "amount": 0
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "nrvrxbol",
+     "date": "2026-10-20",
+     "parties": [
+      {
+       "id": "begaq43w",
+       "team": "John",
+       "receives": [
+        {
+         "id": "5z30vep0",
+         "kind": "waiver",
+         "player": "",
+         "position": "",
+         "nflTeam": "",
+         "amount": 55
+        }
+       ],
+       "sends": [
+        {
+         "id": "s8m6ti3a",
+         "kind": "player",
+         "player": "DeMario Douglas",
+         "position": "WR",
+         "nflTeam": "NE",
+         "amount": 0
+        }
+       ]
+      },
+      {
+       "id": "qqq72x6q",
+       "team": "Chance",
+       "receives": [
+        {
+         "id": "z755ybi0",
+         "kind": "player",
+         "player": "DeMario Douglas",
+         "position": "WR",
+         "nflTeam": "NE",
+         "amount": 0
+        }
+       ],
+       "sends": [
+        {
+         "id": "721g8u4b",
+         "kind": "waiver",
+         "player": "",
+         "position": "",
+         "nflTeam": "",
+         "amount": 55
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "tcptqk5z",
+     "date": "2026-10-27",
+     "parties": [
+      {
+       "id": "3i66crs9",
+       "team": "Peyton",
+       "receives": [
+        {
+         "id": "d1agtuf9",
+         "kind": "player",
+         "player": "Kendre Miller",
+         "position": "RB",
+         "nflTeam": "NO",
+         "amount": 0
+        }
+       ],
+       "sends": [
+        {
+         "id": "3nadse9z",
+         "kind": "waiver",
+         "player": "",
+         "position": "",
+         "nflTeam": "",
+         "amount": 5
+        }
+       ]
+      },
+      {
+       "id": "tzcx1ky6",
+       "team": "Presley",
+       "receives": [
+        {
+         "id": "j9ku470n",
+         "kind": "waiver",
+         "player": "",
+         "position": "",
+         "nflTeam": "",
+         "amount": 5
+        }
+       ],
+       "sends": [
+        {
+         "id": "31o50hzz",
+         "kind": "player",
+         "player": "Kendre Miller",
+         "position": "RB",
+         "nflTeam": "NO",
+         "amount": 0
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "tz9i2yj1",
+     "date": "2026-10-28",
+     "parties": [
+      {
+       "id": "b293k1us",
+       "team": "Peyton",
+       "receives": [
+        {
+         "id": "khgb3u0g",
+         "kind": "player",
+         "player": "Stefon Diggs",
+         "position": "WR",
+         "nflTeam": "WAS",
+         "amount": 0
+        },
+        {
+         "id": "lj1tk08q",
+         "kind": "player",
+         "player": "Amon-Ra St. Brown",
+         "position": "WR",
+         "nflTeam": "DET",
+         "amount": 0
+        }
+       ],
+       "sends": [
+        {
+         "id": "rydnqwru",
+         "kind": "player",
+         "player": "D'Andre Swift",
+         "position": "RB",
+         "nflTeam": "CHI",
+         "amount": 0
+        },
+        {
+         "id": "uy6n6xf2",
+         "kind": "player",
+         "player": "Christian Watson",
+         "position": "WR",
+         "nflTeam": "GB",
+         "amount": 0
+        }
+       ]
+      },
+      {
+       "id": "0cdv2flh",
+       "team": "Santino",
+       "receives": [
+        {
+         "id": "d1pidglo",
+         "kind": "player",
+         "player": "D'Andre Swift",
+         "position": "RB",
+         "nflTeam": "CHI",
+         "amount": 0
+        },
+        {
+         "id": "plbffyzt",
+         "kind": "player",
+         "player": "Christian Watson",
+         "position": "WR",
+         "nflTeam": "GB",
+         "amount": 0
+        }
+       ],
+       "sends": [
+        {
+         "id": "eskzc3f5",
+         "kind": "player",
+         "player": "Stefon Diggs",
+         "position": "WR",
+         "nflTeam": "WAS",
+         "amount": 0
+        },
+        {
+         "id": "chl5tuln",
+         "kind": "player",
+         "player": "Amon-Ra St. Brown",
+         "position": "WR",
+         "nflTeam": "DET",
+         "amount": 0
         }
        ]
       }

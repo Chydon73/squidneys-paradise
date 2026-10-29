@@ -4587,7 +4587,134 @@ function computeTeamTrades(year, teamName) {
 }
 function formatTradeAssetList(list) {
   if (!list || list.length === 0) return '—';
-  return list.map(a => a.kind === 'waiver' ? `$${formatScore(a.amount)} waiver` : `${a.player || 'Unnamed player'}${a.position ? ` (${a.position}${a.nflTeam ? ` - ${a.nflTeam}` : ''})` : ''}`).join(', ');
+  return list.map(a => a.kind === 'waiver' ? `$${a.amount} FAAB` : `${a.player || 'Unnamed player'}${a.position ? ` (${a.position}${a.nflTeam ? ` - ${a.nflTeam}` : ''})` : ''}`).join(', ');
+}
+
+// One trade from `team`'s side: who it was with, and what they got and gave up.
+function TeamTradeCard({
+  trade,
+  team
+}) {
+  const label = {
+    color: 'var(--ink-faint)',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fl-panel fl-panel-raised",
+    style: {
+      padding: '10px 12px',
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fl-mono",
+    style: {
+      fontSize: 11,
+      color: 'var(--ink-faint)',
+      marginBottom: 4
+    }
+  }, trade.date || 'Undated trade', " \u2014 with ", trade.parties.filter(p => p.team !== team).map(p => p.team || 'Unselected team').join(', ') || '—'), trade.parties.filter(p => p.team === team).map(p => /*#__PURE__*/React.createElement("div", {
+    key: p.id,
+    style: {
+      fontSize: 12.5
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: label
+  }, "Received:"), " ", formatTradeAssetList(p.receives)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: label
+  }, "Sent:"), " ", formatTradeAssetList(p.sends)))));
+}
+
+// Every season `team` made at least one trade, oldest first, with those trades in date order.
+function computeCareerTrades(league, team) {
+  return [...league.years].sort((a, b) => a.year - b.year).map(y => ({
+    year: y.year,
+    trades: computeTeamTrades(y, team)
+  })).filter(y => y.trades.length);
+}
+function TeamTradesByYear({
+  byYear,
+  team
+}) {
+  const [open, setOpen] = useState(() => new Set());
+  const toggle = year => setOpen(cur => {
+    const next = new Set(cur);
+    if (next.has(year)) next.delete(year);else next.add(year);
+    return next;
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fl-panel fl-panel-raised",
+    style: {
+      padding: '12px 14px',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fl-display",
+    style: {
+      fontSize: 15,
+      marginBottom: 2
+    }
+  }, "Trades by year"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--ink-faint)',
+      marginBottom: 8
+    }
+  }, "Click a season to see its trades."), byYear.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--ink-faint)',
+      padding: '6px 0'
+    }
+  }, team, " hasn't made any trades.") : byYear.map(({
+    year,
+    trades
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: year,
+    style: {
+      borderTop: '1px solid var(--divider)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: () => toggle(year),
+    title: `Show ${team}'s ${year} trades`,
+    style: {
+      display: 'flex',
+      alignItems: 'baseline',
+      gap: 10,
+      padding: '7px 2px',
+      cursor: 'pointer',
+      ...(open.has(year) ? {
+        background: 'var(--gold-bg)'
+      } : {})
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-block',
+      width: 12,
+      color: 'var(--ink-faint)',
+      fontSize: 10
+    }
+  }, open.has(year) ? '▾' : '▸'), /*#__PURE__*/React.createElement("span", {
+    className: "fl-display",
+    style: {
+      fontSize: 14
+    }
+  }, year), /*#__PURE__*/React.createElement("span", {
+    className: "fl-mono",
+    style: {
+      fontSize: 12,
+      color: 'var(--ink-soft)'
+    }
+  }, trades.length, " trade", trades.length === 1 ? '' : 's')), open.has(year) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '4px 0 8px 22px'
+    }
+  }, trades.map(trade => /*#__PURE__*/React.createElement(TeamTradeCard, {
+    key: trade.id,
+    trade: trade,
+    team: team
+  }))))));
 }
 function TeamsTab({
   year
@@ -4758,40 +4885,11 @@ function TeamsTab({
     style: {
       marginBottom: 16
     }
-  }, teamTrades.map(trade => /*#__PURE__*/React.createElement("div", {
+  }, teamTrades.map(trade => /*#__PURE__*/React.createElement(TeamTradeCard, {
     key: trade.id,
-    className: "fl-panel fl-panel-raised",
-    style: {
-      padding: '10px 12px',
-      marginBottom: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "fl-mono",
-    style: {
-      fontSize: 11,
-      color: 'var(--ink-faint)',
-      marginBottom: 4
-    }
-  }, trade.date || 'Undated trade', " \u2014 with ", trade.parties.filter(p => p.team !== effectiveSelected).map(p => p.team || 'Unselected team').join(', ') || '—'), trade.parties.filter(p => p.team === effectiveSelected).map(p => /*#__PURE__*/React.createElement("div", {
-    key: p.id,
-    style: {
-      fontSize: 12.5
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'var(--ink-faint)',
-      fontSize: 10,
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em'
-    }
-  }, "Received:"), " ", formatTradeAssetList(p.receives)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'var(--ink-faint)',
-      fontSize: 10,
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em'
-    }
-  }, "Sent:"), " ", formatTradeAssetList(p.sends))))))), /*#__PURE__*/React.createElement("div", {
+    trade: trade,
+    team: effectiveSelected
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",
     style: {
       padding: '12px 14px'
@@ -6222,10 +6320,111 @@ function CommonMatchupList({
     }
   }, series(r)))), foldRows(4, r => gamesText(r.value), 'matchups'))));
 }
+
+// Trade counts across every season: per team, and per pair of teams who traded with each other.
+// A trade between three or more teams counts once for every pair in it.
+function computeTradeRecords(league) {
+  const teams = {};
+  const pairs = {};
+  const bump = (map, key, base, year) => {
+    if (!map[key]) map[key] = {
+      ...base,
+      value: 0,
+      byYear: {}
+    };
+    map[key].value += 1;
+    map[key].byYear[year] = (map[key].byYear[year] || 0) + 1;
+  };
+  [...league.years].sort((a, b) => a.year - b.year).forEach(y => (y.trades || []).forEach(trade => {
+    const names = Array.from(new Set(trade.parties.map(p => p.team).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+    names.forEach((n, i) => {
+      bump(teams, n, {
+        team: n
+      }, y.year);
+      names.slice(i + 1).forEach(m => bump(pairs, `${n}|${m}`, {
+        team: n,
+        opp: m
+      }, y.year));
+    });
+  }));
+  const byName = (a, b) => a.team.localeCompare(b.team) || (a.opp || '').localeCompare(b.opp || '');
+  return {
+    mostTrades: topRanked(Object.values(teams).sort(byName), 'desc', 10, WIN_PCT_TOLERANCE),
+    partners: topRanked(Object.values(pairs).sort(byName), 'desc', 10, WIN_PCT_TOLERANCE)
+  };
+}
+function TradeCountList({
+  title,
+  rows: fixedRows,
+  pairs
+}) {
+  const {
+    rows,
+    visible,
+    foldRows
+  } = useModeAndTieFold(null, fixedRows);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fl-panel fl-panel-raised",
+    style: {
+      padding: '12px 14px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fl-display",
+    style: {
+      fontSize: 15,
+      marginBottom: 6
+    }
+  }, title), rows.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--ink-faint)',
+      padding: '6px 0'
+    }
+  }, "Nothing to show yet.") : /*#__PURE__*/React.createElement("table", {
+    className: "fl-table"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    style: {
+      width: 34
+    }
+  }, "Rk"), /*#__PURE__*/React.createElement("th", {
+    className: "fl-th-left"
+  }, pairs ? 'Teams' : 'Team'), /*#__PURE__*/React.createElement("th", null, "Trades"), /*#__PURE__*/React.createElement("th", {
+    className: "fl-th-left"
+  }, "By season"))), /*#__PURE__*/React.createElement("tbody", null, visible.map((r, i) => /*#__PURE__*/React.createElement("tr", {
+    key: i
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "fl-mono",
+    style: {
+      textAlign: 'center',
+      fontSize: 12.5,
+      fontWeight: 700,
+      color: r.rank === 1 ? 'var(--gold)' : 'var(--ink)'
+    }
+  }, r.rank), /*#__PURE__*/React.createElement("td", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700
+    }
+  }, pairs ? `${r.team} & ${r.opp}` : r.team), /*#__PURE__*/React.createElement("td", {
+    className: "fl-mono",
+    style: {
+      textAlign: 'center',
+      fontSize: 12.5,
+      fontWeight: 700
+    }
+  }, r.value), /*#__PURE__*/React.createElement("td", {
+    className: "fl-mono",
+    style: {
+      fontSize: 11,
+      color: 'var(--ink-soft)'
+    }
+  }, Object.entries(r.byYear).map(([yr, n]) => `${yr} (${n})`).join(', ')))), foldRows(4, r => `${r.value} trade${r.value === 1 ? '' : 's'}`, pairs ? 'pairs' : 'teams'))));
+}
 function AllTimeRecords({
   league
 }) {
   const r = computeAllTimeRecords(league);
+  const trades = computeTradeRecords(league);
   const h2h = computeHeadToHeadRecords(league);
   const weeksAtRank = computeWeeksAtTopAndBottom(league);
   const h2hStreaks = computeHeadToHeadStreaks(league);
@@ -6235,7 +6434,7 @@ function AllTimeRecords({
       color: 'var(--ink-faint)',
       marginBottom: 10
     }
-  }, "Season totals and season records are regular season only and count finished seasons (ones with a champion). Weeks in 1st/last place and as top/lowest scorer look at the standings and season-to-date points after every regular-season week, including this season so far; highest/lowest score of the week counts each week's own scores. The other lists can show regular season + playoffs, just the regular season, or just the playoffs. A matchup total is both teams' scores added together, and a margin is the winner's score minus the loser's (tied games aren't counted). Streaks carry over from one season into the next and end on a tie. Records vs. one team need a minimum number of games between the two teams (shown on each list). Equal values share a rank."), /*#__PURE__*/React.createElement("div", {
+  }, "Season totals and season records are regular season only and count finished seasons (ones with a champion). Weeks in 1st/last place and as top/lowest scorer look at the standings and season-to-date points after every regular-season week, including this season so far; highest/lowest score of the week counts each week's own scores. The other lists can show regular season + playoffs, just the regular season, or just the playoffs. A matchup total is both teams' scores added together, and a margin is the winner's score minus the loser's (tied games aren't counted). Streaks carry over from one season into the next and end on a tie. Records vs. one team need a minimum number of games between the two teams (shown on each list). Trade lists count every season, including this one; a trade between three or more teams counts for every pair in it. Equal values share a rank."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
@@ -6318,6 +6517,13 @@ function AllTimeRecords({
     title: "Longest losing streaks vs. one team",
     rowsByMode: h2hStreaks.losses,
     verb: "To"
+  }), /*#__PURE__*/React.createElement(TradeCountList, {
+    title: "Most trades",
+    rows: trades.mostTrades
+  }), /*#__PURE__*/React.createElement(TradeCountList, {
+    title: "Most common trade partners",
+    rows: trades.partners,
+    pairs: true
   })));
 }
 
@@ -6684,6 +6890,7 @@ function TeamCareerStats({
   const titleYears = [];
   const runnerUpYears = [];
   const playoffYears = [];
+  const tradesByYear = computeCareerTrades(league, team);
   [...league.years].sort((a, b) => a.year - b.year).forEach(y => {
     if (computePlayoffStats(y).teams.has(team)) playoffYears.push(y.year);
     const s = computeSeasonStats(y);
@@ -6723,7 +6930,7 @@ function TeamCareerStats({
       marginTop: 1
     }
   }, detail));
-  const titles = /*#__PURE__*/React.createElement(React.Fragment, null, stat('Playoff apps', playoffYears.length, undefined, playoffYears.join(', ')), stat('Championships', titleYears.length, titleYears.length ? 'var(--gold)' : undefined, titleYears.join(', ')), stat('Runner-ups', runnerUpYears.length, undefined, runnerUpYears.join(', ')));
+  const titles = /*#__PURE__*/React.createElement(React.Fragment, null, stat('Playoff apps', playoffYears.length, undefined, playoffYears.join(', ')), stat('Championships', titleYears.length, titleYears.length ? 'var(--gold)' : undefined, titleYears.join(', ')), stat('Runner-ups', runnerUpYears.length, undefined, runnerUpYears.join(', ')), stat('Trades', tradesByYear.reduce((n, y) => n + y.trades.length, 0)));
   const recordText = s => `${s.wins}-${s.losses}${s.ties ? `-${s.ties}` : ''}`;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6802,6 +7009,10 @@ function TeamCareerStats({
     key: team,
     seasons: computeTeamSeasons(league, team),
     league: league,
+    team: team
+  }), /*#__PURE__*/React.createElement(TeamTradesByYear, {
+    key: `trades-${team}`,
+    byYear: tradesByYear,
     team: team
   }), /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",
