@@ -2345,6 +2345,7 @@ function StandingsTab({
     dir: 'asc'
   });
   const [showChart, setShowChart] = useState(false);
+  const [showWeekBar, setShowWeekBar] = useState(false);
   const sortLeagueBy = field => setLeagueSort(cur => cur.field === field ? {
     field,
     dir: cur.dir === 'asc' ? 'desc' : 'asc'
@@ -2492,7 +2493,16 @@ function StandingsTab({
   const playedWeeks = getPlayedWeeks(year);
   const lastWeek = playedWeeks.length ? playedWeeks[playedWeeks.length - 1] : null;
   const pickedWeek = weekPick.yearId === year.id && playedWeeks.includes(weekPick.week) ? weekPick.week : lastWeek;
-  const showWeekSlider = readOnly && playedWeeks.length > 1;
+  // The week slider is a View mode extra, hidden until asked for; hiding it goes back to the latest week.
+  const canPickWeek = readOnly && playedWeeks.length > 1;
+  const showWeekSlider = canPickWeek && showWeekBar;
+  const toggleWeekBar = () => {
+    if (showWeekBar) setWeekPick({
+      yearId: null,
+      week: null
+    });
+    setShowWeekBar(v => !v);
+  };
   const throughWeek = showWeekSlider ? pickedWeek : lastWeek;
   const standingsYear = throughWeek === lastWeek ? year : {
     ...year,
@@ -2631,7 +2641,8 @@ function StandingsTab({
       display: 'flex',
       alignItems: 'center',
       gap: 8,
-      marginBottom: 14
+      marginBottom: 14,
+      flexWrap: 'wrap'
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
@@ -2672,12 +2683,29 @@ function StandingsTab({
       color: viewMode === 'league' ? 'var(--on-accent)' : 'var(--ink-soft)',
       borderLeft: '1px solid var(--rule)'
     }
-  }, "League-wide")), playedWeeks.length > 1 && /*#__PURE__*/React.createElement("button", {
+  }, "League-wide")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginLeft: 'auto'
+    }
+  }, canPickWeek && /*#__PURE__*/React.createElement("button", {
     className: "fl-btn fl-keep-in-view",
     style: {
       fontSize: 11,
       padding: '5px 10px',
-      marginLeft: 'auto',
+      ...(showWeekBar ? {
+        background: 'var(--turf)',
+        borderColor: 'var(--turf)',
+        color: 'var(--on-accent)'
+      } : {})
+    },
+    onClick: toggleWeekBar
+  }, showWeekBar ? 'Hide past weeks' : 'Past weeks'), playedWeeks.length > 1 && /*#__PURE__*/React.createElement("button", {
+    className: "fl-btn fl-keep-in-view",
+    style: {
+      fontSize: 11,
+      padding: '5px 10px',
       ...(showChart ? {
         background: 'var(--turf)',
         borderColor: 'var(--turf)',
@@ -2685,7 +2713,7 @@ function StandingsTab({
       } : {})
     },
     onClick: () => setShowChart(v => !v)
-  }, showChart ? 'Hide standings chart' : 'Show standings chart')), showChart && playedWeeks.length > 1 && /*#__PURE__*/React.createElement(StandingsChart, {
+  }, showChart ? 'Hide standings chart' : 'Show standings chart'))), showChart && playedWeeks.length > 1 && /*#__PURE__*/React.createElement(StandingsChart, {
     year: year,
     weeks: playedWeeks,
     markWeek: throughWeek
@@ -4626,6 +4654,195 @@ function TeamTradeCard({
   }, "Sent:"), " ", formatTradeAssetList(p.sends)))));
 }
 
+// `team`'s picks in one season's draft, in pick order. Empty rounds are kept so the list shows
+// every slot the team had.
+function computeTeamDraft(year, team) {
+  const d = year.draft;
+  if (!d || !d.teamNames) return [];
+  const col = d.teamNames.indexOf(team) + 1;
+  if (!col) return [];
+  return Array.from({
+    length: d.numRounds
+  }, (_, i) => {
+    const round = i + 1;
+    const pick = d.picks[pickKey(round, col)] || {};
+    return {
+      round,
+      label: pickLabel(round, col, d.numTeams),
+      player: (pick.player || '').trim(),
+      position: pick.position || '',
+      nflTeam: pick.team || ''
+    };
+  });
+}
+function TeamDraftTable({
+  picks
+}) {
+  if (picks.length === 0) return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--ink-faint)',
+      padding: '6px 0'
+    }
+  }, "No draft entered for this team.");
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fl-scroll-x"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "fl-table",
+    style: {
+      tableLayout: 'fixed',
+      minWidth: 380,
+      maxWidth: 520
+    }
+  }, /*#__PURE__*/React.createElement("colgroup", null, /*#__PURE__*/React.createElement("col", {
+    style: {
+      width: 90
+    }
+  }), /*#__PURE__*/React.createElement("col", {
+    style: {
+      width: 200
+    }
+  }), /*#__PURE__*/React.createElement("col", {
+    style: {
+      width: 56
+    }
+  }), /*#__PURE__*/React.createElement("col", {
+    style: {
+      width: 56
+    }
+  })), /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Pick"), /*#__PURE__*/React.createElement("th", {
+    className: "fl-th-left"
+  }, "Player"), /*#__PURE__*/React.createElement("th", null, "Pos"), /*#__PURE__*/React.createElement("th", null, "Team"))), /*#__PURE__*/React.createElement("tbody", null, picks.map(p => /*#__PURE__*/React.createElement("tr", {
+    key: p.round
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "fl-mono",
+    style: {
+      textAlign: 'center',
+      fontSize: 12,
+      color: 'var(--ink-soft)'
+    }
+  }, p.label), /*#__PURE__*/React.createElement("td", {
+    style: {
+      fontSize: 13,
+      fontWeight: 600,
+      color: p.player ? 'var(--ink)' : 'var(--ink-faint)'
+    }
+  }, p.player || '—'), /*#__PURE__*/React.createElement("td", {
+    style: {
+      textAlign: 'center'
+    }
+  }, p.position && /*#__PURE__*/React.createElement("span", {
+    className: "fl-mono",
+    style: {
+      fontSize: 10.5,
+      fontWeight: 700,
+      padding: '2px 6px',
+      borderRadius: 4,
+      color: '#fff',
+      background: POSITION_COLORS[p.position] || 'var(--hover)'
+    }
+  }, p.position)), /*#__PURE__*/React.createElement("td", {
+    className: "fl-mono",
+    style: {
+      textAlign: 'center',
+      fontSize: 12,
+      color: 'var(--ink-soft)'
+    }
+  }, p.nflTeam))))));
+}
+
+// Every season `team` drafted in, oldest first.
+function computeCareerDrafts(league, team) {
+  return [...league.years].sort((a, b) => a.year - b.year).map(y => ({
+    year: y.year,
+    picks: computeTeamDraft(y, team)
+  })).filter(y => y.picks.some(p => p.player));
+}
+function TeamDraftsByYear({
+  byYear,
+  team
+}) {
+  const [open, setOpen] = useState(() => new Set());
+  const toggle = year => setOpen(cur => {
+    const next = new Set(cur);
+    if (next.has(year)) next.delete(year);else next.add(year);
+    return next;
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fl-panel fl-panel-raised",
+    style: {
+      padding: '12px 14px',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fl-display",
+    style: {
+      fontSize: 15,
+      marginBottom: 2
+    }
+  }, "Drafts by year"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--ink-faint)',
+      marginBottom: 8
+    }
+  }, "Click a season to see that draft."), byYear.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--ink-faint)',
+      padding: '6px 0'
+    }
+  }, "No drafts entered for ", team, ".") : byYear.map(({
+    year,
+    picks
+  }) => {
+    const first = picks.find(p => p.player);
+    return /*#__PURE__*/React.createElement("div", {
+      key: year,
+      style: {
+        borderTop: '1px solid var(--divider)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      onClick: () => toggle(year),
+      title: `Show ${team}'s ${year} draft`,
+      style: {
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 10,
+        padding: '7px 2px',
+        cursor: 'pointer',
+        ...(open.has(year) ? {
+          background: 'var(--gold-bg)'
+        } : {})
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: 'inline-block',
+        width: 12,
+        color: 'var(--ink-faint)',
+        fontSize: 10
+      }
+    }, open.has(year) ? '▾' : '▸'), /*#__PURE__*/React.createElement("span", {
+      className: "fl-display",
+      style: {
+        fontSize: 14
+      }
+    }, year), /*#__PURE__*/React.createElement("span", {
+      className: "fl-mono",
+      style: {
+        fontSize: 12,
+        color: 'var(--ink-soft)'
+      }
+    }, first ? `First pick ${first.label.split(' ')[0]}: ${first.player}` : '')), open.has(year) && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '4px 0 10px 22px'
+      }
+    }, /*#__PURE__*/React.createElement(TeamDraftTable, {
+      picks: picks
+    })));
+  }));
+}
+
 // Every season `team` made at least one trade, oldest first, with those trades in date order.
 function computeCareerTrades(league, team) {
   return [...league.years].sort((a, b) => a.year - b.year).map(y => ({
@@ -4722,6 +4939,7 @@ function TeamsTab({
   const teamNames = getYearTeamNames(year);
   const [selected, setSelected] = useState('');
   const [showTrades, setShowTrades] = useState(false);
+  const [showDraft, setShowDraft] = useState(false);
   const effectiveSelected = selected && teamNames.includes(selected) ? selected : teamNames[0] || '';
   if (teamNames.length === 0) {
     return /*#__PURE__*/React.createElement("div", {
@@ -4741,6 +4959,8 @@ function TeamsTab({
   const lRank = teamEntry ? leagueRank[teamEntry.id] : null;
   const schedule = teamScheduleFor(year, effectiveSelected);
   const teamTrades = computeTeamTrades(year, effectiveSelected);
+  const teamDraft = computeTeamDraft(year, effectiveSelected);
+  const hasDraft = teamDraft.some(p => p.player);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 16
@@ -4751,6 +4971,7 @@ function TeamsTab({
     onChange: e => {
       setSelected(e.target.value);
       setShowTrades(false);
+      setShowDraft(false);
     },
     style: {
       fontSize: 20,
@@ -4766,7 +4987,10 @@ function TeamsTab({
     value: n
   }, n)))), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 8
+      marginBottom: 8,
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap'
     }
   }, /*#__PURE__*/React.createElement("button", {
     className: "fl-btn fl-keep-in-view",
@@ -4776,7 +5000,15 @@ function TeamsTab({
     },
     onClick: () => setShowTrades(v => !v),
     disabled: teamTrades.length === 0
-  }, showTrades ? 'Hide trades' : `View trades${teamTrades.length ? ` (${teamTrades.length})` : ''}`)), /*#__PURE__*/React.createElement("div", {
+  }, showTrades ? 'Hide trades' : `View trades${teamTrades.length ? ` (${teamTrades.length})` : ''}`), /*#__PURE__*/React.createElement("button", {
+    className: "fl-btn fl-keep-in-view",
+    style: {
+      fontSize: 11,
+      padding: '5px 10px'
+    },
+    onClick: () => setShowDraft(v => !v),
+    disabled: !hasDraft
+  }, showDraft ? 'Hide draft' : 'View draft')), /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",
     style: {
       padding: '12px 16px',
@@ -4889,7 +5121,21 @@ function TeamsTab({
     key: trade.id,
     trade: trade,
     team: effectiveSelected
-  }))), /*#__PURE__*/React.createElement("div", {
+  }))), showDraft && hasDraft && /*#__PURE__*/React.createElement("div", {
+    className: "fl-panel fl-panel-raised",
+    style: {
+      padding: '12px 14px',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fl-display",
+    style: {
+      fontSize: 15,
+      marginBottom: 8
+    }
+  }, year.year, " draft"), /*#__PURE__*/React.createElement(TeamDraftTable, {
+    picks: teamDraft
+  })), /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",
     style: {
       padding: '12px 14px'
@@ -7013,6 +7259,10 @@ function TeamCareerStats({
   }), /*#__PURE__*/React.createElement(TeamTradesByYear, {
     key: `trades-${team}`,
     byYear: tradesByYear,
+    team: team
+  }), /*#__PURE__*/React.createElement(TeamDraftsByYear, {
+    key: `drafts-${team}`,
+    byYear: computeCareerDrafts(league, team),
     team: team
   }), /*#__PURE__*/React.createElement("div", {
     className: "fl-panel fl-panel-raised",

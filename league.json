@@ -27113,9 +27113,109 @@
        "scoreB": 136.1
       }
      ]
+    },
+    {
+     "id": "vwxf0nz8",
+     "weekNum": 8,
+     "games": [
+      {
+       "id": "xlzelwag",
+       "teamA": "Peyton",
+       "scoreA": 149.7,
+       "teamB": "Marty",
+       "scoreB": 110.65
+      },
+      {
+       "id": "1b7tv71h",
+       "teamA": "Dylan",
+       "scoreA": 109.35,
+       "teamB": "Austin",
+       "scoreB": 85.9
+      },
+      {
+       "id": "gul4sa8k",
+       "teamA": "Presley",
+       "scoreA": 134.25,
+       "teamB": "Robbie",
+       "scoreB": 140.25
+      },
+      {
+       "id": "78gjsh4d",
+       "teamA": "Cade",
+       "scoreA": 109.85,
+       "teamB": "Caleb",
+       "scoreB": 151.6
+      },
+      {
+       "id": "l0uuxrwk",
+       "teamA": "John",
+       "scoreA": 110.7,
+       "teamB": "Santino",
+       "scoreB": 166.45
+      },
+      {
+       "id": "ru06sxjj",
+       "teamA": "Kyle",
+       "scoreA": 100.25,
+       "teamB": "Chance",
+       "scoreB": 97.65
+      }
+     ]
+    },
+    {
+     "id": "973uxb2g",
+     "weekNum": 9,
+     "games": [
+      {
+       "id": "5rd7b6hd",
+       "teamA": "Peyton",
+       "scoreA": 148,
+       "teamB": "Chance",
+       "scoreB": 122
+      },
+      {
+       "id": "7r43vgfj",
+       "teamA": "Dylan",
+       "scoreA": 91.55,
+       "teamB": "Robbie",
+       "scoreB": 116.05
+      },
+      {
+       "id": "0cb1mfel",
+       "teamA": "Presley",
+       "scoreA": 93.55,
+       "teamB": "Austin",
+       "scoreB": 84.1
+      },
+      {
+       "id": "gks9v59c",
+       "teamA": "Cade",
+       "scoreA": 145.6,
+       "teamB": "John",
+       "scoreB": 149.85
+      },
+      {
+       "id": "cc04tfl9",
+       "teamA": "Caleb",
+       "scoreA": 129.6,
+       "teamB": "Santino",
+       "scoreB": 107.45
+      },
+      {
+       "id": "hwwyy9h0",
+       "teamA": "Marty",
+       "scoreA": 101.9,
+       "teamB": "Kyle",
+       "scoreB": 117.6
+      }
+     ]
     }
    ],
-   "playoffBracket": null,
+   "playoffBracket": {
+    "numTeams": 7,
+    "useDivisionWinners": false,
+    "scores": {}
+   },
    "tiebreaker": "points",
    "trades": [
     {

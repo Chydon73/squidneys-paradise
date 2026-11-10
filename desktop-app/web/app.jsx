@@ -1872,6 +1872,7 @@ function StandingsTab({ year, updateLeague, readOnly }) {
   const [weekPick, setWeekPick] = useState({ yearId: null, week: null });
   const [leagueSort, setLeagueSort] = useState({ field: 'rank', dir: 'asc' });
   const [showChart, setShowChart] = useState(false);
+  const [showWeekBar, setShowWeekBar] = useState(false);
   const sortLeagueBy = (field) => setLeagueSort((cur) => (
     cur.field === field
       ? { field, dir: cur.dir === 'asc' ? 'desc' : 'asc' }
@@ -1976,7 +1977,13 @@ function StandingsTab({ year, updateLeague, readOnly }) {
   const playedWeeks = getPlayedWeeks(year);
   const lastWeek = playedWeeks.length ? playedWeeks[playedWeeks.length - 1] : null;
   const pickedWeek = weekPick.yearId === year.id && playedWeeks.includes(weekPick.week) ? weekPick.week : lastWeek;
-  const showWeekSlider = readOnly && playedWeeks.length > 1;
+  // The week slider is a View mode extra, hidden until asked for; hiding it goes back to the latest week.
+  const canPickWeek = readOnly && playedWeeks.length > 1;
+  const showWeekSlider = canPickWeek && showWeekBar;
+  const toggleWeekBar = () => {
+    if (showWeekBar) setWeekPick({ yearId: null, week: null });
+    setShowWeekBar((v) => !v);
+  };
   const throughWeek = showWeekSlider ? pickedWeek : lastWeek;
   const standingsYear = throughWeek === lastWeek
     ? year
@@ -2047,7 +2054,7 @@ function StandingsTab({ year, updateLeague, readOnly }) {
           <Trash2 size={13} /> Reset standings
         </button>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-faint)' }}>View</span>
         <div style={{ display: 'inline-flex', border: '1px solid var(--rule)', borderRadius: 3, overflow: 'hidden' }}>
           <button
@@ -2074,15 +2081,26 @@ function StandingsTab({ year, updateLeague, readOnly }) {
             League-wide
           </button>
         </div>
-        {playedWeeks.length > 1 && (
-          <button
-            className="fl-btn fl-keep-in-view"
-            style={{ fontSize: 11, padding: '5px 10px', marginLeft: 'auto', ...(showChart ? { background: 'var(--turf)', borderColor: 'var(--turf)', color: 'var(--on-accent)' } : {}) }}
-            onClick={() => setShowChart((v) => !v)}
-          >
-            {showChart ? 'Hide standings chart' : 'Show standings chart'}
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+          {canPickWeek && (
+            <button
+              className="fl-btn fl-keep-in-view"
+              style={{ fontSize: 11, padding: '5px 10px', ...(showWeekBar ? { background: 'var(--turf)', borderColor: 'var(--turf)', color: 'var(--on-accent)' } : {}) }}
+              onClick={toggleWeekBar}
+            >
+              {showWeekBar ? 'Hide past weeks' : 'Past weeks'}
+            </button>
+          )}
+          {playedWeeks.length > 1 && (
+            <button
+              className="fl-btn fl-keep-in-view"
+              style={{ fontSize: 11, padding: '5px 10px', ...(showChart ? { background: 'var(--turf)', borderColor: 'var(--turf)', color: 'var(--on-accent)' } : {}) }}
+              onClick={() => setShowChart((v) => !v)}
+            >
+              {showChart ? 'Hide standings chart' : 'Show standings chart'}
+            </button>
+          )}
+        </div>
       </div>
       {showChart && playedWeeks.length > 1 && (
         <StandingsChart year={year} weeks={playedWeeks} markWeek={throughWeek} />
@@ -3300,6 +3318,107 @@ function TeamTradeCard({ trade, team }) {
   );
 }
 
+// `team`'s picks in one season's draft, in pick order. Empty rounds are kept so the list shows
+// every slot the team had.
+function computeTeamDraft(year, team) {
+  const d = year.draft;
+  if (!d || !d.teamNames) return [];
+  const col = d.teamNames.indexOf(team) + 1;
+  if (!col) return [];
+  return Array.from({ length: d.numRounds }, (_, i) => {
+    const round = i + 1;
+    const pick = d.picks[pickKey(round, col)] || {};
+    return { round, label: pickLabel(round, col, d.numTeams), player: (pick.player || '').trim(), position: pick.position || '', nflTeam: pick.team || '' };
+  });
+}
+
+function TeamDraftTable({ picks }) {
+  if (picks.length === 0) return <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', padding: '6px 0' }}>No draft entered for this team.</div>;
+  return (
+    <div className="fl-scroll-x">
+      <table className="fl-table" style={{ tableLayout: 'fixed', minWidth: 380, maxWidth: 520 }}>
+        <colgroup>
+          <col style={{ width: 90 }} />
+          <col style={{ width: 200 }} />
+          <col style={{ width: 56 }} />
+          <col style={{ width: 56 }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Pick</th>
+            <th className="fl-th-left">Player</th>
+            <th>Pos</th>
+            <th>Team</th>
+          </tr>
+        </thead>
+        <tbody>
+          {picks.map((p) => (
+            <tr key={p.round}>
+              <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-soft)' }}>{p.label}</td>
+              <td style={{ fontSize: 13, fontWeight: 600, color: p.player ? 'var(--ink)' : 'var(--ink-faint)' }}>{p.player || '—'}</td>
+              <td style={{ textAlign: 'center' }}>
+                {p.position && (
+                  <span className="fl-mono" style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 6px', borderRadius: 4, color: '#fff', background: POSITION_COLORS[p.position] || 'var(--hover)' }}>
+                    {p.position}
+                  </span>
+                )}
+              </td>
+              <td className="fl-mono" style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-soft)' }}>{p.nflTeam}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Every season `team` drafted in, oldest first.
+function computeCareerDrafts(league, team) {
+  return [...league.years].sort((a, b) => a.year - b.year)
+    .map((y) => ({ year: y.year, picks: computeTeamDraft(y, team) }))
+    .filter((y) => y.picks.some((p) => p.player));
+}
+
+function TeamDraftsByYear({ byYear, team }) {
+  const [open, setOpen] = useState(() => new Set());
+  const toggle = (year) => setOpen((cur) => {
+    const next = new Set(cur);
+    if (next.has(year)) next.delete(year); else next.add(year);
+    return next;
+  });
+  return (
+    <div className="fl-panel fl-panel-raised" style={{ padding: '12px 14px', marginBottom: 16 }}>
+      <div className="fl-display" style={{ fontSize: 15, marginBottom: 2 }}>Drafts by year</div>
+      <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 8 }}>Click a season to see that draft.</div>
+      {byYear.length === 0 ? (
+        <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', padding: '6px 0' }}>No drafts entered for {team}.</div>
+      ) : byYear.map(({ year, picks }) => {
+        const first = picks.find((p) => p.player);
+        return (
+          <div key={year} style={{ borderTop: '1px solid var(--divider)' }}>
+            <div
+              onClick={() => toggle(year)}
+              title={`Show ${team}'s ${year} draft`}
+              style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '7px 2px', cursor: 'pointer', ...(open.has(year) ? { background: 'var(--gold-bg)' } : {}) }}
+            >
+              <span style={{ display: 'inline-block', width: 12, color: 'var(--ink-faint)', fontSize: 10 }}>{open.has(year) ? '▾' : '▸'}</span>
+              <span className="fl-display" style={{ fontSize: 14 }}>{year}</span>
+              <span className="fl-mono" style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                {first ? `First pick ${first.label.split(' ')[0]}: ${first.player}` : ''}
+              </span>
+            </div>
+            {open.has(year) && (
+              <div style={{ padding: '4px 0 10px 22px' }}>
+                <TeamDraftTable picks={picks} />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // Every season `team` made at least one trade, oldest first, with those trades in date order.
 function computeCareerTrades(league, team) {
   return [...league.years].sort((a, b) => a.year - b.year)
@@ -3346,6 +3465,7 @@ function TeamsTab({ year }) {
   const teamNames = getYearTeamNames(year);
   const [selected, setSelected] = useState('');
   const [showTrades, setShowTrades] = useState(false);
+  const [showDraft, setShowDraft] = useState(false);
   const effectiveSelected = (selected && teamNames.includes(selected)) ? selected : (teamNames[0] || '');
 
   if (teamNames.length === 0) {
@@ -3360,6 +3480,8 @@ function TeamsTab({ year }) {
   const lRank = teamEntry ? leagueRank[teamEntry.id] : null;
   const schedule = teamScheduleFor(year, effectiveSelected);
   const teamTrades = computeTeamTrades(year, effectiveSelected);
+  const teamDraft = computeTeamDraft(year, effectiveSelected);
+  const hasDraft = teamDraft.some((p) => p.player);
 
   return (
     <div>
@@ -3367,7 +3489,7 @@ function TeamsTab({ year }) {
         <select
           className="fl-display fl-keep-in-view"
           value={effectiveSelected}
-          onChange={(e) => { setSelected(e.target.value); setShowTrades(false); }}
+          onChange={(e) => { setSelected(e.target.value); setShowTrades(false); setShowDraft(false); }}
           style={{
             fontSize: 20, padding: '8px 12px', border: '1px solid var(--rule)', borderRadius: 3,
             background: 'var(--panel-raised)', color: 'var(--ink)', cursor: 'pointer',
@@ -3377,7 +3499,7 @@ function TeamsTab({ year }) {
         </select>
       </div>
 
-      <div style={{ marginBottom: 8 }}>
+      <div style={{ marginBottom: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button
           className="fl-btn fl-keep-in-view"
           style={{ fontSize: 11, padding: '5px 10px' }}
@@ -3385,6 +3507,14 @@ function TeamsTab({ year }) {
           disabled={teamTrades.length === 0}
         >
           {showTrades ? 'Hide trades' : `View trades${teamTrades.length ? ` (${teamTrades.length})` : ''}`}
+        </button>
+        <button
+          className="fl-btn fl-keep-in-view"
+          style={{ fontSize: 11, padding: '5px 10px' }}
+          onClick={() => setShowDraft((v) => !v)}
+          disabled={!hasDraft}
+        >
+          {showDraft ? 'Hide draft' : 'View draft'}
         </button>
       </div>
 
@@ -3424,6 +3554,13 @@ function TeamsTab({ year }) {
       {showTrades && (
         <div style={{ marginBottom: 16 }}>
           {teamTrades.map((trade) => <TeamTradeCard key={trade.id} trade={trade} team={effectiveSelected} />)}
+        </div>
+      )}
+
+      {showDraft && hasDraft && (
+        <div className="fl-panel fl-panel-raised" style={{ padding: '12px 14px', marginBottom: 16 }}>
+          <div className="fl-display" style={{ fontSize: 15, marginBottom: 8 }}>{year.year} draft</div>
+          <TeamDraftTable picks={teamDraft} />
         </div>
       )}
 
@@ -4748,6 +4885,8 @@ function TeamCareerStats({ league }) {
       <TeamSeasonsTable key={team} seasons={computeTeamSeasons(league, team)} league={league} team={team} />
 
       <TeamTradesByYear key={`trades-${team}`} byYear={tradesByYear} team={team} />
+
+      <TeamDraftsByYear key={`drafts-${team}`} byYear={computeCareerDrafts(league, team)} team={team} />
 
       <div className="fl-panel fl-panel-raised" style={{ padding: '12px 14px' }}>
         <div className="fl-display" style={{ fontSize: 15, marginBottom: 2 }}>Record vs. each team</div>
